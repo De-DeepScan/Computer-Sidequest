@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROTOCOLE DE SÉCURITÉ IA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- CSS STYLES --- */
+        :root {
+            --bg-color: #050505;
+            --main-green: #33ff33;
+            --dim-green: #1a801a;
+            --alert-red: #ff3333;
+            --font-stack: 'VT323', monospace;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--main-green);
+            font-family: var(--font-stack);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* CRT Scanline Effect */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.2) 50%,
+                rgba(0,0,0,0.2)
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        /* --- HEADER (AI THREAT) --- */
+        header {
+            border: 2px solid var(--alert-red);
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 0 10px var(--alert-red);
+            transition: all 0.5s;
+        }
+        
+        /* Success State for Header */
+        header.secure {
+            border-color: var(--main-green);
+            box-shadow: 0 0 10px var(--main-green);
+        }
+
+        h1 {
+            color: var(--alert-red);
+            margin: 0 0 10px 0;
+            font-size: 2rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            animation: pulse 2s infinite;
+        }
+
+        header.secure h1 {
+            color: var(--main-green);
+            animation: none;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 30px;
+            background-color: #330000;
+            border: 1px solid var(--alert-red);
+            position: relative;
+        }
+        
+        header.secure .progress-container {
+            background-color: #003300;
+            border-color: var(--main-green);
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: var(--alert-red);
+            transition: width 0.2s linear;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            line-height: 30px;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        /* --- MAIN GAME AREA --- */
+        #game-area {
+            flex-grow: 1;
+            border: 2px solid var(--main-green);
+            margin-bottom: 20px;
+            position: relative;
+            background: rgba(0, 20, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Phase 1: Big Button */
+        .big-button {
+            background: black;
+            border: 4px solid var(--main-green);
+            color: var(--main-green);
+            padding: 20px 40px;
+            font-size: 2rem;
+            font-family: var(--font-stack);
+            cursor: pointer;
+            box-shadow: 0 0 15px var(--main-green);
+            transition: all 0.1s;
+        }
+        .big-button:active {
+            background: var(--main-green);
+            color: black;
+            transform: scale(0.95);
+        }
+        .counter-text {
+            font-size: 1.5rem;
+            margin-top: 20px;
+        }
+
+        /* Phase 2: Targets */
+        .target-node {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border: 2px solid var(--main-green);
+            background: rgba(51, 255, 51, 0.1);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            box-shadow: 0 0 5px var(--main-green);
+            animation: blink 0.5s infinite alternate;
+        }
+        .target-node:hover {
+            background: var(--main-green);
+            color: black;
+        }
+
+        /* Phase 3: Terminal */
+        .terminal-container {
+            text-align: center;
+            width: 80%;
+        }
+        .sequence-display {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            letter-spacing: 10px;
+        }
+        .keypad {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .key-btn {
+            background: black;
+            border: 2px solid var(--main-green);
+            color: var(--main-green);
+            width: 80px;
+            height: 60px;
+            font-size: 2rem;
+            font-family: var(--font-stack);
+            cursor: pointer;
+        }
+        .key-btn:active {
+            background: var(--main-green);
+            color: black;
+        }
+
+        /* Phase Message / Delay */
+        .phase-message {
+            font-size: 2rem;
+            text-align: center;
+            animation: blink 1s infinite;
+        }
+        
+        /* Victory Screen Text */
+        .victory-text {
+            font-size: 4rem;
+            color: var(--main-green);
+            text-align: center;
+            border: 4px solid var(--main-green);
+            padding: 40px;
+            background: rgba(0, 50, 0, 0.8);
+            box-shadow: 0 0 30px var(--main-green);
+        }
+
+        /* --- FOOTER (LOGS) --- */
+        #log-area {
+            height: 150px;
+            border: 1px solid var(--dim-green);
+            padding: 10px;
+            overflow-y: hidden; /* Auto scroll handles this */
+            font-size: 1.2rem;
+            opacity: 0.8;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        .log-entry {
+            margin: 2px 0;
+        }
+        .log-entry::before {
+            content: "> ";
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes pulse {
+            0% { opacity: 1; text-shadow: 0 0 5px var(--alert-red); }
+            50% { opacity: 0.7; text-shadow: 0 0 20px var(--alert-red); }
+            100% { opacity: 1; text-shadow: 0 0 5px var(--alert-red); }
+        }
+        @keyframes blink {
+            from { opacity: 1; }
+            to { opacity: 0.2; }
+        }
+        .glitch {
+            animation: glitch-anim 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+        }
+        @keyframes glitch-anim {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+
+        /* Utility */
+        .hidden { display: none !important; }
+
+    </style>
+</head>
+<body>
+
+    <div class="scanlines"></div>
+
+    <div class="container">
+        <header id="main-header">
+            <h1 id="header-title">ATTENTION : TÉLÉCHARGEMENT DE L'IA EN COURS</h1>
+            <div class="progress-container">
+                <div class="progress-bar" id="ai-bar"></div>
+                <div class="progress-text" id="ai-text">CORRUPTION SYSTÈME : 0%</div>
+            </div>
+        </header>
+
+        <div id="game-area">
+            <div id="start-screen" class="phase-message">
+                CLIQUEZ POUR INITIALISER<br>LE PARE-FEU
+            </div>
+        </div>
+
+        <div id="log-area">
+            <div class="log-entry">Système démarré...</div>
+            <div class="log-entry">En attente d'input utilisateur...</div>
+        </div>
+    </div>
+
+    <script>
+        /* --- CONFIGURATION API & GAME --- */
+        const CONFIG = {
+            // API URL: REPLACE THIS with your endpoint
+            apiUrl: "http://localhost:3000/api/escape", 
+            
+            victoryGoal: 5,       // How many games to win before API is sent
+            
+            aiSpeed: 0.05,        // Difficulty: Bar speed
+            aiTickRate: 100,      // Difficulty: Tick rate
+            penaltyAmount: 5,     // Difficulty: Penalty on fail
+            rewardAmount: 15,     // Difficulty: Bar reduction on success
+            phase1Clicks: 10,     
+            phase2Targets: 10,    
+            phase3Targets: 5,     
+            phase3CodeLength: 5,  
+            delayTime: 3000       // Time between phases
+        };
+
+        /* --- STATE VARIABLES --- */
+        let aiProgress = 0;
+        let currentPhase = 0; 
+        let isGameActive = false;
+        let taskProgress = 0;
+        let currentSequence = "";
+        let inputSequence = "";
+        
+        let gamesWonTotal = 0; // Tracks total successful games
+
+        /* --- CORE LOOP --- */
+        const aiBar = document.getElementById('ai-bar');
+        const aiText = document.getElementById('ai-text');
+        const gameArea = document.getElementById('game-area');
+        const logArea = document.getElementById('log-area');
+        const mainHeader = document.getElementById('main-header');
+        const headerTitle = document.getElementById('header-title');
+
+        // Start button listener
+        document.getElementById('start-screen').addEventListener('click', () => {
+            isGameActive = true;
+            startGameLoop();
+            nextPhase();
+        });
+
+        function startGameLoop() {
+            const loop = setInterval(() => {
+                if (!isGameActive) {
+                    clearInterval(loop);
+                    return;
+                }
+
+                // Increase AI Progress
+                aiProgress += CONFIG.aiSpeed;
+                
+                // Cap at 100
+                if (aiProgress >= 100) {
+                    aiProgress = 100;
+                    triggerGameOver();
+                }
+
+                updateBar();
+            }, CONFIG.aiTickRate);
+
+            // Random log generator
+            setInterval(() => {
+                if (Math.random() > 0.8 && isGameActive) {
+                    const logs = [
+                        "Attaque détectée port 8080...",
+                        "Cryptage en cours...",
+                        "Tentative de bypass...",
+                        "Surchauffe du noyau...",
+                        "Paquet de données perdu..."
+                    ];
+                    addLog(logs[Math.floor(Math.random() * logs.length)]);
+                }
+            }, 2000);
+        }
+
+        function updateBar() {
+            aiBar.style.width = aiProgress + "%";
+            aiText.innerText = "CORRUPTION SYSTÈME : " + Math.floor(aiProgress) + "%";
+            
+            if(aiProgress > 80) {
+                aiBar.style.backgroundColor = "#ff0000";
+                if(Math.random() > 0.8) document.body.classList.add('glitch');
+                else document.body.classList.remove('glitch');
+            } else {
+                aiBar.style.backgroundColor = "#ff3333";
+                document.body.classList.remove('glitch');
+            }
+        }
+
+        function reduceCorruption() {
+            // Apply rewards
+            aiProgress -= CONFIG.rewardAmount;
+            if (aiProgress < 0) aiProgress = 0;
+            updateBar();
+            
+            // Increment Wins
+            gamesWonTotal++;
+            addLog(`SUCCÈS : Pare-feu renforcé (${gamesWonTotal}/${CONFIG.victoryGoal})`);
+            
+            gameArea.classList.add('glitch'); 
+            setTimeout(() => gameArea.classList.remove('glitch'), 300);
+
+            // CHECK VICTORY CONDITION
+            if (gamesWonTotal >= CONFIG.victoryGoal) {
+                triggerVictory();
+            } else {
+                nextPhase();
+            }
+        }
+
+        function addLog(msg) {
+            const div = document.createElement('div');
+            div.className = 'log-entry';
+            div.innerText = msg;
+            logArea.appendChild(div);
+            if(logArea.children.length > 8) {
+                logArea.removeChild(logArea.children[0]);
+            }
+        }
+
+        /* --- VICTORY & API --- */
+        function triggerVictory() {
+            isGameActive = false; // Stops the loop
+            document.body.classList.remove('glitch');
+
+            // 1. Visuals
+            mainHeader.classList.add('secure');
+            headerTitle.innerText = "SYSTÈME SÉCURISÉ";
+            aiBar.style.width = "100%";
+            aiBar.style.backgroundColor = "#33ff33"; // Green bar
+            aiText.innerText = "INTÉGRITÉ : 100%";
+
+            gameArea.innerHTML = `
+                <div class="victory-text">
+                    PROTOCOLE VALIDÉ<br>
+                </div>
+            `;
+
+            // 2. SEND API
+            sendApiSuccess();
+        }
+
+        function sendApiSuccess() {
+            const apiStatus = document.getElementById('api-status');
+
+            // Basic fetch POST request
+            fetch(CONFIG.apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: "reussite" })
+            })
+            .then(response => {
+                if(response.ok) {
+                    addLog("API : Succès de l'envoi.");
+                    apiStatus.innerText = "API : ENVOYÉ AVEC SUCCÈS";
+                    apiStatus.style.color = "#33ff33";
+                } else {
+                    addLog("API : Erreur serveur.");
+                    apiStatus.innerText = "API : ERREUR SERVEUR";
+                    apiStatus.style.color = "orange";
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                addLog("API : Échec de la connexion.");
+                apiStatus.innerHTML = "API : ÉCHEC<br>(Vérifiez la console)";
+                apiStatus.style.color = "red";
+            });
+        }
+
+        function triggerGameOver() {
+            isGameActive = false;
+            document.body.innerHTML = `
+                <div style="display:flex; justify-content:center; align-items:center; height:100vh; background:black; color:red; font-family:'VT323'; font-size:5rem; text-align:center;">
+                    ÉCHEC SYSTÈME<br>IA UPLOAD COMPLÉTÉ
+                </div>
+            `;
+        }
+
+        /* --- PHASE MANAGEMENT --- */
+        function nextPhase() {
+            let next;
+            do {
+                next = Math.floor(Math.random() * 3) + 1; 
+            } while (next === currentPhase && currentPhase !== 0); 
+            
+            currentPhase = next;
+
+            gameArea.innerHTML = `<div class="phase-message">CHARGEMENT DU PROTOCOLE...</div>`;
+            
+            setTimeout(() => {
+                // Ensure we haven't lost/won during the delay
+                if(!isGameActive) return; 
+
+                gameArea.innerHTML = ''; 
+                if (currentPhase === 1) initPhase1();
+                if (currentPhase === 2) initPhase2();
+                if (currentPhase === 3) initPhase3();
+            }, CONFIG.delayTime);
+        }
+
+        /* --- PHASE 1: CLICKER --- */
+        function initPhase1() {
+            taskProgress = 0;
+            addLog("INIT : Protocole manuel requis.");
+            const btn = document.createElement('button');
+            btn.className = 'big-button';
+            btn.innerText = "INITIALISER PROTOCOLE";
+            const counter = document.createElement('div');
+            counter.className = 'counter-text';
+            counter.innerText = `CHARGEMENT : 0 / ${CONFIG.phase1Clicks}`;
+
+            btn.onclick = () => {
+                taskProgress++;
+                counter.innerText = `CHARGEMENT : ${taskProgress} / ${CONFIG.phase1Clicks}`;
+                if (taskProgress >= CONFIG.phase1Clicks) reduceCorruption();
+            };
+            gameArea.appendChild(btn);
+            gameArea.appendChild(counter);
+        }
+
+        /* --- PHASE 2: TARGETS --- */
+        function initPhase2() {
+            taskProgress = 0;
+            addLog("ALERTE : Nœuds instables.");
+            const info = document.createElement('div');
+            info.style.position = 'absolute'; info.style.top = '10px';
+            info.innerText = `NŒUDS : 0 / ${CONFIG.phase2Targets}`;
+            gameArea.appendChild(info);
+
+            function spawnTarget() {
+                if (taskProgress >= CONFIG.phase2Targets) { reduceCorruption(); return; }
+                const node = document.createElement('div');
+                node.className = 'target-node';
+                node.innerText = "+";
+                node.style.top = (Math.floor(Math.random() * 80) + 10) + "%";
+                node.style.left = (Math.floor(Math.random() * 80) + 10) + "%";
+                node.onmousedown = () => {
+                    taskProgress++;
+                    info.innerText = `NŒUDS : ${taskProgress} / ${CONFIG.phase2Targets}`;
+                    node.remove();
+                    spawnTarget();
+                };
+                gameArea.appendChild(node);
+                setTimeout(() => { if(document.body.contains(node)) { node.remove(); spawnTarget(); }}, 2000);
+            }
+            spawnTarget();
+        }
+
+        /* --- PHASE 3: HYBRID --- */
+        function initPhase3() {
+            taskProgress = 0;
+            addLog("ALERTE : Cryptage détecté.");
+            const info = document.createElement('div');
+            info.style.position = 'absolute'; info.style.top = '10px';
+            info.innerText = `FRAGMENTS : 0 / ${CONFIG.phase3Targets}`;
+            gameArea.appendChild(info);
+
+            function spawnFragment() {
+                if (taskProgress >= CONFIG.phase3Targets) { startCodeEntry(); return; }
+                const node = document.createElement('div');
+                node.className = 'target-node';
+                node.style.borderColor = "#00FFFF";
+                node.innerText = "?";
+                node.style.top = (Math.floor(Math.random() * 80) + 10) + "%";
+                node.style.left = (Math.floor(Math.random() * 80) + 10) + "%";
+                node.onmousedown = () => {
+                    taskProgress++;
+                    info.innerText = `FRAGMENTS : ${taskProgress} / ${CONFIG.phase3Targets}`;
+                    node.remove();
+                    spawnFragment();
+                };
+                gameArea.appendChild(node);
+            }
+            spawnFragment();
+        }
+
+        function startCodeEntry() {
+            gameArea.innerHTML = '';
+            addLog("DÉCRYPTAGE REQUIS.");
+            currentSequence = "";
+            for(let i=0; i<CONFIG.phase3CodeLength; i++) currentSequence += Math.floor(Math.random() * 2);
+            inputSequence = "";
+
+            const container = document.createElement('div');
+            container.className = 'terminal-container';
+            container.innerHTML = `
+                <h2>SÉQUENCE REQUISE :</h2>
+                <div class="sequence-display">${currentSequence.split('').join(' ')}</div>
+                <div id="user-input" style="color:cyan; font-size:2rem; margin-bottom:20px;">> _</div>
+            `;
+            const keypad = document.createElement('div');
+            keypad.className = 'keypad';
+            ['0','1'].forEach(num => {
+                const btn = document.createElement('button');
+                btn.className = 'key-btn'; btn.innerText = num;
+                btn.onclick = () => {
+                    inputSequence += num;
+                    document.getElementById('user-input').innerText = "> " + inputSequence;
+                    if (inputSequence.length === currentSequence.length) {
+                        if (inputSequence === currentSequence) reduceCorruption();
+                        else {
+                            addLog("ERREUR SÉQUENCE");
+                            aiProgress += CONFIG.penaltyAmount;
+                            inputSequence = "";
+                            document.getElementById('user-input').innerText = "ERREUR";
+                            setTimeout(() => document.getElementById('user-input').innerText = "> _", 500);
+                            gameArea.classList.add('glitch');
+                            setTimeout(() => gameArea.classList.remove('glitch'), 300);
+                        }
+                    }
+                };
+                keypad.appendChild(btn);
+            });
+            container.appendChild(keypad);
+            gameArea.appendChild(container);
+        }
+    </script>
+</body>
+</html>
