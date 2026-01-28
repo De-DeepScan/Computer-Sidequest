@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PROTOCOLE DE SÉCURITÉ IA</title>
+    <title>LINK - TRANSFERT DE RESSOURCES V5</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
@@ -12,9 +12,9 @@
         /* --- CSS STYLES --- */
         :root {
             --bg-color: #050505;
-            --main-green: #33ff33;
-            --dim-green: #1a801a;
-            --alert-red: #ff3333;
+            --main-green: #00ff41; 
+            --dim-green: #008F11;
+            --upload-color: #00ffff;
             --font-stack: 'VT323', monospace;
         }
 
@@ -29,243 +29,168 @@
             user-select: none;
         }
 
-        /* CRT Scanline Effect */
         .scanlines {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                to bottom,
-                rgba(255,255,255,0),
-                rgba(255,255,255,0) 50%,
-                rgba(0,0,0,0.2) 50%,
-                rgba(0,0,0,0.2)
-            );
-            background-size: 100% 4px;
-            pointer-events: none;
-            z-index: 999;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background-size: 100% 4px; pointer-events: none; z-index: 999;
         }
 
         .container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            padding: 20px;
-            box-sizing: border-box;
-            position: relative;
+            display: flex; flex-direction: column; height: 100%;
+            padding: 20px; box-sizing: border-box; position: relative;
         }
 
-        /* --- HEADER (AI THREAT) --- */
+        /* HEADER */
         header {
-            border: 2px solid var(--alert-red);
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-            box-shadow: 0 0 10px var(--alert-red);
-            transition: all 0.5s;
+            border: 2px solid var(--main-green); padding: 15px; margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0, 20, 0, 0.5); box-shadow: 0 0 15px var(--dim-green);
         }
-        
-        /* Success State for Header */
-        header.secure {
-            border-color: var(--main-green);
-            box-shadow: 0 0 10px var(--main-green);
+        .header-title { font-size: 1.5rem; letter-spacing: 2px; text-transform: uppercase; }
+        .resource-value { font-size: 2.5rem; font-weight: bold; line-height: 1; text-align: right; }
+
+        /* UPLOAD BAR */
+        .upload-container {
+            width: 100%; height: 20px; background-color: #001100;
+            border: 1px solid var(--dim-green); margin-top: 10px; position: relative;
+        }
+        .upload-bar {
+            height: 100%; width: 0%; background-color: var(--upload-color);
+            transition: width 0.2s ease-out; box-shadow: 0 0 10px var(--upload-color);
         }
 
-        h1 {
-            color: var(--alert-red);
-            margin: 0 0 10px 0;
-            font-size: 2rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            animation: pulse 2s infinite;
-        }
-
-        header.secure h1 {
-            color: var(--main-green);
-            animation: none;
-        }
-
-        .progress-container {
-            width: 100%;
-            height: 30px;
-            background-color: #330000;
-            border: 1px solid var(--alert-red);
-            position: relative;
-        }
-        
-        header.secure .progress-container {
-            background-color: #003300;
-            border-color: var(--main-green);
-        }
-
-        .progress-bar {
-            height: 100%;
-            width: 0%;
-            background-color: var(--alert-red);
-            transition: width 0.2s linear;
-        }
-
-        .progress-text {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            line-height: 30px;
-            color: white;
-            font-weight: bold;
-            text-shadow: 1px 1px 0 #000;
-        }
-
-        /* --- MAIN GAME AREA --- */
+        /* GAME AREA */
         #game-area {
-            flex-grow: 1;
-            border: 2px solid var(--main-green);
-            margin-bottom: 20px;
-            position: relative;
-            background: rgba(0, 20, 0, 0.3);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            flex-grow: 1; border: 2px solid var(--dim-green); margin-bottom: 20px;
+            position: relative; background: rgba(0, 15, 20, 0.2);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
             overflow: hidden;
         }
 
-        /* Phase 1: Big Button */
+        /* --- PHASE 1: Clicker --- */
         .big-button {
-            background: black;
-            border: 4px solid var(--main-green);
-            color: var(--main-green);
-            padding: 20px 40px;
-            font-size: 2rem;
-            font-family: var(--font-stack);
-            cursor: pointer;
-            box-shadow: 0 0 15px var(--main-green);
-            transition: all 0.1s;
+            background: black; border: 4px solid var(--main-green); color: var(--main-green);
+            padding: 25px 50px; font-size: 2.5rem; font-family: var(--font-stack);
+            cursor: pointer; box-shadow: 0 0 15px var(--main-green); text-transform: uppercase;
         }
-        .big-button:active {
-            background: var(--main-green);
-            color: black;
-            transform: scale(0.95);
-        }
-        .counter-text {
-            font-size: 1.5rem;
-            margin-top: 20px;
-        }
+        .big-button:active { background: var(--main-green); color: black; transform: scale(0.95); }
 
-        /* Phase 2: Targets */
+        /* --- PHASE 2: Targets --- */
         .target-node {
-            position: absolute;
-            width: 50px;
-            height: 50px;
-            border: 2px solid var(--main-green);
-            background: rgba(51, 255, 51, 0.1);
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 20px;
-            box-shadow: 0 0 5px var(--main-green);
-            animation: blink 0.5s infinite alternate;
-        }
-        .target-node:hover {
-            background: var(--main-green);
-            color: black;
+            position: absolute; width: 60px; height: 60px;
+            border: 2px solid var(--upload-color); background: rgba(0, 255, 255, 0.1);
+            color: var(--upload-color); cursor: pointer; display: flex; justify-content: center; align-items: center;
+            font-size: 24px; box-shadow: 0 0 8px var(--upload-color); animation: pulse 1s infinite alternate;
         }
 
-        /* Phase 3: Terminal */
-        .terminal-container {
-            text-align: center;
-            width: 80%;
+        /* --- PHASE 3: Captcha Code --- */
+        .captcha-box { 
+            text-align: center; width: 80%; padding: 20px; border: 2px solid var(--dim-green); 
+            background: rgba(0,20,0,0.8); margin-bottom: 20px;
         }
-        .sequence-display {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            letter-spacing: 10px;
+        .sequence-display { 
+            font-size: 4rem; margin-bottom: 10px; letter-spacing: 5px; 
+            font-family: 'VT323', monospace; font-weight: normal;
+            /* REMOVED SKEW/BLUR */
+            color: white;
         }
-        .keypad {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-        }
+        .timer-track { width: 100%; height: 10px; background: #222; margin-top: 10px; border: 1px solid #555; }
+        .timer-fill { height: 100%; width: 100%; background: var(--upload-color); transition: width 0.05s linear; }
+        
+        .keypad { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
         .key-btn {
-            background: black;
-            border: 2px solid var(--main-green);
-            color: var(--main-green);
-            width: 80px;
-            height: 60px;
-            font-size: 2rem;
-            font-family: var(--font-stack);
-            cursor: pointer;
+            background: black; border: 2px solid var(--main-green); color: var(--main-green);
+            width: 80px; height: 60px; font-size: 2rem; font-family: var(--font-stack); cursor: pointer;
         }
-        .key-btn:active {
-            background: var(--main-green);
-            color: black;
-        }
+        .key-btn:active { background: var(--main-green); color: black; }
+        .key-back { border-color: #ff3333; color: #ff3333; }
+        .key-back:active { background: #ff3333; color: white; }
 
-        /* Phase Message / Delay */
-        .phase-message {
-            font-size: 2rem;
-            text-align: center;
-            animation: blink 1s infinite;
+        /* --- PHASE 4: Wires --- */
+        #svg-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .wire-col { 
+            display: flex; flex-direction: column; justify-content: space-around; 
+            height: 70%; position: absolute; width: 60px; top: 15%;
+        }
+        .wire-dot {
+            width: 50px; height: 50px; border-radius: 50%; background: #000;
+            border: 3px solid var(--main-green); position: relative; z-index: 10;
+            display: flex; justify-content: center; align-items: center; cursor: pointer;
+            font-size: 2rem; color: var(--main-green); margin: 0 auto;
+        }
+        .wire-dot:hover { background: var(--dim-green); color: black; }
+        .wire-line { stroke: var(--main-green); stroke-width: 4; stroke-linecap: round; }
+        
+        /* Phase 4 Tutorial Animation */
+        .tutorial-text { 
+            position: absolute; top: 5%; width: 100%; text-align: center; 
+            font-size: 1.5rem; animation: blink 2s infinite; color: var(--upload-color); 
         }
         
-        /* Victory Screen Text */
-        .victory-text {
-            font-size: 4rem;
-            color: var(--main-green);
-            text-align: center;
-            border: 4px solid var(--main-green);
-            padding: 40px;
-            background: rgba(0, 50, 0, 0.8);
-            box-shadow: 0 0 30px var(--main-green);
+        /* New Ghost Animation Container */
+        .ghost-demo {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 200px; height: 50px; pointer-events: none; z-index: 5;
+            display: flex; align-items: center;
+            animation: fade-ghost 2s infinite;
+        }
+        .ghost-dot-start {
+            width: 10px; height: 10px; background: var(--upload-color); border-radius: 50%;
+        }
+        .ghost-line {
+            height: 4px; background: var(--upload-color);
+            width: 0%; /* Animates to 100% */
+            animation: grow-line 2s infinite;
+            transform-origin: left;
+        }
+        .ghost-hand {
+            font-size: 2rem; margin-left: -10px;
+            animation: move-hand 2s infinite;
         }
 
-        /* --- FOOTER (LOGS) --- */
-        #log-area {
-            height: 150px;
-            border: 1px solid var(--dim-green);
-            padding: 10px;
-            overflow-y: hidden; /* Auto scroll handles this */
-            font-size: 1.2rem;
-            opacity: 0.8;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
+        @keyframes grow-line {
+            0% { width: 0; }
+            20% { width: 0; }
+            70% { width: 100%; }
+            100% { width: 100%; }
         }
-        .log-entry {
-            margin: 2px 0;
+        @keyframes move-hand {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(0); }
+            70% { transform: translateX(180px); }
+            100% { transform: translateX(180px); }
         }
-        .log-entry::before {
-            content: "> ";
-        }
-
-        /* --- ANIMATIONS --- */
-        @keyframes pulse {
-            0% { opacity: 1; text-shadow: 0 0 5px var(--alert-red); }
-            50% { opacity: 0.7; text-shadow: 0 0 20px var(--alert-red); }
-            100% { opacity: 1; text-shadow: 0 0 5px var(--alert-red); }
-        }
-        @keyframes blink {
-            from { opacity: 1; }
-            to { opacity: 0.2; }
-        }
-        .glitch {
-            animation: glitch-anim 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
-        }
-        @keyframes glitch-anim {
-            0% { transform: translate(0) }
-            20% { transform: translate(-2px, 2px) }
-            40% { transform: translate(-2px, -2px) }
-            60% { transform: translate(2px, 2px) }
-            80% { transform: translate(2px, -2px) }
-            100% { transform: translate(0) }
+        @keyframes fade-ghost {
+            0% { opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
         }
 
-        /* Utility */
-        .hidden { display: none !important; }
 
+        /* --- PHASE 5: Hexagons --- */
+        .hex-grid { display: flex; flex-wrap: wrap; width: 320px; justify-content: center; gap: 10px; }
+        .hex {
+            width: 80px; height: 70px; background-color: #003300;
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 2.5rem; cursor: pointer; border: none; color: var(--main-green);
+            transition: background 0.2s;
+        }
+        .hex:hover { background-color: #005500; }
+        .hex.active { color: var(--upload-color); text-shadow: 0 0 10px var(--upload-color); }
+
+        /* --- MISC --- */
+        .status-message { font-size: 2.5rem; text-align: center; animation: blink 1s infinite; }
+        .sending-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 100;
+        }
+        #log-area { height: 120px; border-top: 1px solid var(--dim-green); padding: 10px; font-size: 1.1rem; opacity: 0.7; display: flex; flex-direction: column; justify-content: flex-end; }
+        .log-entry::before { content: ">> "; color: var(--dim-green); }
+
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -273,138 +198,107 @@
     <div class="scanlines"></div>
 
     <div class="container">
-        <header id="main-header">
-            <h1 id="header-title">ATTENTION : TÉLÉCHARGEMENT DE L'IA EN COURS</h1>
-            <div class="progress-container">
-                <div class="progress-bar" id="ai-bar"></div>
-                <div class="progress-text" id="ai-text">CORRUPTION SYSTÈME : 0%</div>
+        <header>
+            <div class="header-info">
+                <div class="header-title">UPLINK V5.0</div>
+                <div style="font-size: 0.9rem; opacity: 0.7;">DESTINATAIRE: UNITÉ ALPHA</div>
+            </div>
+            <div class="resource-counter-box">
+                <div style="color:var(--upload-color)">TOTAL ENVOYÉ</div>
+                <div class="resource-value" id="total-sent">0</div>
             </div>
         </header>
 
+        <div style="margin-bottom: 5px; display:flex; justify-content:space-between;">
+            <span>CHARGEMENT PAQUET EN COURS...</span>
+            <span id="package-percent">0%</span>
+        </div>
+        <div class="upload-container">
+            <div class="upload-bar" id="current-upload-bar"></div>
+        </div>
+
         <div id="game-area">
-            <div id="start-screen" class="phase-message">
-                CLIQUEZ POUR INITIALISER<br>LE PARE-FEU
+            <div id="start-btn" class="status-message" style="cursor: pointer; border: 2px solid var(--main-green); padding: 20px;">
+                INITIALISER LE TRANSFERT
             </div>
         </div>
 
         <div id="log-area">
-            <div class="log-entry">Système démarré...</div>
-            <div class="log-entry">En attente d'input utilisateur...</div>
+            <div class="log-entry">Système de transfert prêt.</div>
         </div>
     </div>
 
     <script>
-        /* --- CONFIGURATION API & GAME --- */
+        /* --- CONFIGURATION --- */
         const CONFIG = {
-            // API URL: REPLACE THIS with your endpoint
             apiUrl: "http://localhost:3000/api/escape", 
             
-            victoryGoal: 5,       // How many games to win before API is sent
-            
-            aiSpeed: 0.05,        // Difficulty: Bar speed
-            aiTickRate: 100,      // Difficulty: Tick rate
-            penaltyAmount: 5,     // Difficulty: Penalty on fail
-            rewardAmount: 15,     // Difficulty: Bar reduction on success
             phase1Clicks: 10,     
-            phase2Targets: 10,    
-            phase3Targets: 5,     
-            phase3CodeLength: 5,  
-            delayTime: 3000       // Time between phases
+            phase2Targets: 6,    
+            phase3CodeLength: 4,  
+            phase3Time: 5000,   
+            phase4Pairs: 4,     
+            delayTime: 1500
         };
 
-        /* --- STATE VARIABLES --- */
-        let aiProgress = 0;
-        let currentPhase = 0; 
-        let isGameActive = false;
-        let taskProgress = 0;
-        let currentSequence = "";
-        let inputSequence = "";
+        /* --- STATE --- */
+        let totalSent = 0;
+        let currentTaskMax = 10;
+        let currentTaskProgress = 0;
+        let currentPhase = 0;
+        let phaseQueue = []; 
+        let lastPhasePlayed = 0; 
         
-        let gamesWonTotal = 0; // Tracks total successful games
+        // Timers
+        let captchaInterval;
 
-        /* --- CORE LOOP --- */
-        const aiBar = document.getElementById('ai-bar');
-        const aiText = document.getElementById('ai-text');
+        /* --- DOM ELEMENTS --- */
         const gameArea = document.getElementById('game-area');
+        const uploadBar = document.getElementById('current-upload-bar');
+        const percentText = document.getElementById('package-percent');
+        const totalSentDisplay = document.getElementById('total-sent');
         const logArea = document.getElementById('log-area');
-        const mainHeader = document.getElementById('main-header');
-        const headerTitle = document.getElementById('header-title');
 
-        // Start button listener
-        document.getElementById('start-screen').addEventListener('click', () => {
-            isGameActive = true;
-            startGameLoop();
-            nextPhase();
-        });
+        // Start
+        document.getElementById('start-btn').addEventListener('click', () => { selectNextPhase(); });
 
-        function startGameLoop() {
-            const loop = setInterval(() => {
-                if (!isGameActive) {
-                    clearInterval(loop);
-                    return;
-                }
-
-                // Increase AI Progress
-                aiProgress += CONFIG.aiSpeed;
-                
-                // Cap at 100
-                if (aiProgress >= 100) {
-                    aiProgress = 100;
-                    triggerGameOver();
-                }
-
-                updateBar();
-            }, CONFIG.aiTickRate);
-
-            // Random log generator
-            setInterval(() => {
-                if (Math.random() > 0.8 && isGameActive) {
-                    const logs = [
-                        "Attaque détectée port 8080...",
-                        "Cryptage en cours...",
-                        "Sandouiche manger",
-                        "pouler.fr localise",
-                        "Redbull consomme",
-                        "Air-fryer commence",
-                    ];
-                    addLog(logs[Math.floor(Math.random() * logs.length)]);
-                }
-            }, 2000);
+        /* --- CORE FUNCTIONS --- */
+        
+        function updateTaskProgress(val, max) {
+            currentTaskProgress = val;
+            currentTaskMax = max;
+            const pct = Math.floor((val / max) * 100);
+            uploadBar.style.width = pct + "%";
+            percentText.innerText = pct + "%";
+            if (val >= max) finishPackage();
         }
 
-        function updateBar() {
-            aiBar.style.width = aiProgress + "%";
-            aiText.innerText = "CORRUPTION SYSTÈME : " + Math.floor(aiProgress) + "%";
-            
-            if(aiProgress > 80) {
-                aiBar.style.backgroundColor = "#ff0000";
-                if(Math.random() > 0.8) document.body.classList.add('glitch');
-                else document.body.classList.remove('glitch');
-            } else {
-                aiBar.style.backgroundColor = "#ff3333";
-                document.body.classList.remove('glitch');
-            }
+        function finishPackage() {
+            clearInterval(captchaInterval); 
+            gameArea.innerHTML = `
+                <div class="sending-overlay">
+                    <div class="sending-text">ENVOI DU PAQUET...</div>
+                    <div style="color:#fff;">TRANSFERT RESSOURCE >> JOUEUR</div>
+                </div>
+            `;
+            sendResourceApi();
+            totalSent++;
+            totalSentDisplay.innerText = totalSent;
+
+            setTimeout(() => {
+                uploadBar.style.width = "0%";
+                percentText.innerText = "0%";
+                selectNextPhase();
+            }, CONFIG.delayTime);
         }
 
-        function reduceCorruption() {
-            // Apply rewards
-            aiProgress -= CONFIG.rewardAmount;
-            if (aiProgress < 0) aiProgress = 0;
-            updateBar();
-            
-            // Increment Wins
-            gamesWonTotal++;
-            addLog(`SUCCÈS : Pare-feu renforcé (${gamesWonTotal}/${CONFIG.victoryGoal})`);
-            
-            gameArea.classList.add('glitch'); 
-            setTimeout(() => gameArea.classList.remove('glitch'), 300);
-
-            // CHECK VICTORY CONDITION
-            if (gamesWonTotal >= CONFIG.victoryGoal) {
-                triggerVictory();
-            } else {
-                nextPhase();
-            }
+        function sendResourceApi() {
+            addLog("API : Envoi ressource...");
+            fetch(CONFIG.apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: "add_resource", amount: 1 }) 
+            }).catch(err => console.log("API Error", err));
         }
 
         function addLog(msg) {
@@ -412,214 +306,310 @@
             div.className = 'log-entry';
             div.innerText = msg;
             logArea.appendChild(div);
-            if(logArea.children.length > 8) {
-                logArea.removeChild(logArea.children[0]);
+            if(logArea.children.length > 5) logArea.removeChild(logArea.children[0]);
+        }
+
+        /* --- RANDOMIZER (1-5 only) --- */
+        function generateQueue() {
+            let batch = [1, 2, 3, 4, 5]; // REMOVED 6
+            for (let i = batch.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [batch[i], batch[j]] = [batch[j], batch[i]];
             }
+            if (lastPhasePlayed !== 0 && batch[0] === lastPhasePlayed) {
+                const temp = batch[0];
+                batch[0] = batch[batch.length - 1];
+                batch[batch.length - 1] = temp;
+            }
+            phaseQueue = batch;
         }
 
-        /* --- VICTORY & API --- */
-        function triggerVictory() {
-            isGameActive = false; // Stops the loop
-            document.body.classList.remove('glitch');
-
-            // Créer une fonction de replay qui redémarre le jeu
-
-            // 1. Visuals
-            mainHeader.classList.add('secure');
-            headerTitle.innerText = "SYSTÈME SÉCURISÉ";
-            aiBar.style.width = "100%";
-            aiBar.style.backgroundColor = "#33ff33"; // Green bar
-            aiText.innerText = "INTÉGRITÉ : 100%";
-
-            gameArea.innerHTML = `
-                <div class="victory-text">
-                    PROTOCOLE VALIDÉ<br>
-                </div>
-            `;
-
-            // 2. SEND API
-            sendApiSuccess();
-        }
-
-        function sendApiSuccess() {
-            const apiStatus = document.getElementById('api-status');
-
-            // Basic fetch POST request
-            fetch(CONFIG.apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ message: "reussite" })
-            })
-            .then(response => {
-                if(response.ok) {
-                    addLog("API : Succès de l'envoi.");
-                    apiStatus.innerText = "API : ENVOYÉ AVEC SUCCÈS";
-                    apiStatus.style.color = "#33ff33";
-                } else {
-                    addLog("API : Erreur serveur.");
-                    apiStatus.innerText = "API : ERREUR SERVEUR";
-                    apiStatus.style.color = "orange";
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                addLog("API : Échec de la connexion.");
-                apiStatus.innerHTML = "API : ÉCHEC<br>(Vérifiez la console)";
-                apiStatus.style.color = "red";
-            });
-        }
-
-        function triggerGameOver() {
-            isGameActive = false;
-            document.body.innerHTML = `
-                <div style="display:flex; justify-content:center; align-items:center; height:100vh; background:black; color:red; font-family:'VT323'; font-size:5rem; text-align:center;">
-                    ÉCHEC SYSTÈME<br>IA UPLOAD COMPLÉTÉ
-                </div>
-            `;
-        }
-
-        /* --- PHASE MANAGEMENT --- */
-        function nextPhase() {
-            let next;
-            do {
-                next = Math.floor(Math.random() * 3) + 1; 
-            } while (next === currentPhase && currentPhase !== 0); 
-            
+        function selectNextPhase() {
+            if (phaseQueue.length === 0) generateQueue();
+            const next = phaseQueue.shift();
+            lastPhasePlayed = next;
             currentPhase = next;
+            currentTaskProgress = 0;
+            gameArea.innerHTML = ''; 
 
-            gameArea.innerHTML = `<div class="phase-message">CHARGEMENT DU PROTOCOLE...</div>`;
-            
-            setTimeout(() => {
-                // Ensure we haven't lost/won during the delay
-                if(!isGameActive) return; 
-
-                gameArea.innerHTML = ''; 
-                if (currentPhase === 1) initPhase1();
-                if (currentPhase === 2) initPhase2();
-                if (currentPhase === 3) initPhase3();
-            }, CONFIG.delayTime);
+            if (currentPhase === 1) initClicker();
+            if (currentPhase === 2) initTargets();
+            if (currentPhase === 3) initCaptcha();
+            if (currentPhase === 4) initWires();
+            if (currentPhase === 5) initHex();
         }
 
         /* --- PHASE 1: CLICKER --- */
-        function initPhase1() {
-            taskProgress = 0;
-            addLog("INIT : Protocole manuel requis.");
+        function initClicker() {
+            addLog("TÂCHE : Compresser les données");
+            updateTaskProgress(0, CONFIG.phase1Clicks);
             const btn = document.createElement('button');
             btn.className = 'big-button';
-            btn.innerText = "INITIALISER PROTOCOLE";
-            const counter = document.createElement('div');
-            counter.className = 'counter-text';
-            counter.innerText = `CHARGEMENT : 0 / ${CONFIG.phase1Clicks}`;
-
+            btn.innerText = "COMPRESSER";
             btn.onclick = () => {
-                taskProgress++;
-                counter.innerText = `CHARGEMENT : ${taskProgress} / ${CONFIG.phase1Clicks}`;
-                if (taskProgress >= CONFIG.phase1Clicks) reduceCorruption();
+                currentTaskProgress++;
+                updateTaskProgress(currentTaskProgress, CONFIG.phase1Clicks);
             };
             gameArea.appendChild(btn);
-            gameArea.appendChild(counter);
         }
 
         /* --- PHASE 2: TARGETS --- */
-        function initPhase2() {
-            taskProgress = 0;
-            addLog("ALERTE : Nœuds instables.");
+        function initTargets() {
+            addLog("TÂCHE : Récupérer les fragments");
+            updateTaskProgress(0, CONFIG.phase2Targets);
             const info = document.createElement('div');
-            info.style.position = 'absolute'; info.style.top = '10px';
-            info.innerText = `NŒUDS : 0 / ${CONFIG.phase2Targets}`;
+            info.style.position = 'absolute'; info.style.top = '10px'; info.style.color = 'var(--upload-color)'; info.innerText = "COLLECTE...";
             gameArea.appendChild(info);
 
-            function spawnTarget() {
-                if (taskProgress >= CONFIG.phase2Targets) { reduceCorruption(); return; }
+            function spawn() {
+                if (currentTaskProgress >= CONFIG.phase2Targets) return;
                 const node = document.createElement('div');
                 node.className = 'target-node';
-                node.innerText = "+";
+                node.innerText = "DATA";
                 node.style.top = (Math.floor(Math.random() * 80) + 10) + "%";
                 node.style.left = (Math.floor(Math.random() * 80) + 10) + "%";
                 node.onmousedown = () => {
-                    taskProgress++;
-                    info.innerText = `NŒUDS : ${taskProgress} / ${CONFIG.phase2Targets}`;
                     node.remove();
-                    spawnTarget();
-                };
-                gameArea.appendChild(node);
-                setTimeout(() => { if(document.body.contains(node)) { node.remove(); spawnTarget(); }}, 2000);
-            }
-            spawnTarget();
-        }
-
-        /* --- PHASE 3: HYBRID --- */
-        function initPhase3() {
-            taskProgress = 0;
-            addLog("ALERTE : Cryptage détecté.");
-            const info = document.createElement('div');
-            info.style.position = 'absolute'; info.style.top = '10px';
-            info.innerText = `FRAGMENTS : 0 / ${CONFIG.phase3Targets}`;
-            gameArea.appendChild(info);
-
-            function spawnFragment() {
-                if (taskProgress >= CONFIG.phase3Targets) { startCodeEntry(); return; }
-                const node = document.createElement('div');
-                node.className = 'target-node';
-                node.style.borderColor = "#00FFFF";
-                node.innerText = "?";
-                node.style.top = (Math.floor(Math.random() * 80) + 10) + "%";
-                node.style.left = (Math.floor(Math.random() * 80) + 10) + "%";
-                node.onmousedown = () => {
-                    taskProgress++;
-                    info.innerText = `FRAGMENTS : ${taskProgress} / ${CONFIG.phase3Targets}`;
-                    node.remove();
-                    spawnFragment();
+                    currentTaskProgress++;
+                    updateTaskProgress(currentTaskProgress, CONFIG.phase2Targets);
+                    if (currentTaskProgress < CONFIG.phase2Targets) spawn();
                 };
                 gameArea.appendChild(node);
             }
-            spawnFragment();
+            spawn();
         }
 
-        function startCodeEntry() {
-            gameArea.innerHTML = '';
-            addLog("DÉCRYPTAGE REQUIS.");
-            currentSequence = "";
-            for(let i=0; i<CONFIG.phase3CodeLength; i++) currentSequence += Math.floor(Math.random() * 2);
-            inputSequence = "";
+        /* --- PHASE 3: CAPTCHA (Straight Line) --- */
+        function initCaptcha() {
+            addLog("TÂCHE : Saisie Captcha Rapide");
+            updateTaskProgress(0, 1);
+
+            let seq = "";
+            let input = "";
+            let timeLeft = CONFIG.phase3Time;
 
             const container = document.createElement('div');
             container.className = 'terminal-container';
             container.innerHTML = `
-                <h2>SÉQUENCE REQUISE :</h2>
-                <div class="sequence-display">${currentSequence.split('').join(' ')}</div>
-                <div id="user-input" style="color:cyan; font-size:2rem; margin-bottom:20px;">> _</div>
+                <div class="captcha-box">
+                    <div style="font-size:1rem; opacity:0.8;">CODE DE SÉCURITÉ</div>
+                    <div class="sequence-display" id="captcha-code">----</div>
+                    <div class="timer-track"><div class="timer-fill" id="captcha-timer"></div></div>
+                </div>
+                <div id="user-input" style="color:var(--upload-color); font-size:2rem; margin-bottom:10px;">> _</div>
             `;
+            
             const keypad = document.createElement('div');
             keypad.className = 'keypad';
-            ['0','1'].forEach(num => {
+            
+            ['0', '1', '<'].forEach(key => {
                 const btn = document.createElement('button');
-                btn.className = 'key-btn'; btn.innerText = num;
-                btn.onclick = () => {
-                    inputSequence += num;
-                    document.getElementById('user-input').innerText = "> " + inputSequence;
-                    if (inputSequence.length === currentSequence.length) {
-                        if (inputSequence === currentSequence) reduceCorruption();
-                        else {
-                            addLog("ERREUR SÉQUENCE");
-                            aiProgress += CONFIG.penaltyAmount;
-                            inputSequence = "";
-                            document.getElementById('user-input').innerText = "ERREUR";
-                            setTimeout(() => document.getElementById('user-input').innerText = "> _", 500);
-                            gameArea.classList.add('glitch');
-                            setTimeout(() => gameArea.classList.remove('glitch'), 300);
-                        }
-                    }
-                };
+                btn.className = 'key-btn' + (key === '<' ? ' key-back' : '');
+                btn.innerText = key;
+                btn.onclick = () => handleInput(key);
                 keypad.appendChild(btn);
             });
             container.appendChild(keypad);
             gameArea.appendChild(container);
+
+            const displayEl = document.getElementById('captcha-code');
+            const timerEl = document.getElementById('captcha-timer');
+            const inputEl = document.getElementById('user-input');
+
+            function generateCode() {
+                seq = "";
+                for(let i=0; i<CONFIG.phase3CodeLength; i++) seq += Math.floor(Math.random() * 2);
+                displayEl.innerText = seq.split('').join(' ');
+                input = "";
+                inputEl.innerText = "> _";
+                timeLeft = CONFIG.phase3Time;
+            }
+
+            function handleInput(key) {
+                if(key === '<') {
+                    input = input.slice(0, -1);
+                } else {
+                    if(input.length < seq.length) input += key;
+                }
+                
+                inputEl.innerText = "> " + input;
+                
+                if (input.length === seq.length) {
+                    if (input === seq) {
+                        clearInterval(captchaInterval);
+                        updateTaskProgress(1, 1);
+                    } else {
+                        inputEl.style.color = "red";
+                        setTimeout(() => inputEl.style.color = "var(--upload-color)", 200);
+                        input = "";
+                        inputEl.innerText = "> _";
+                    }
+                }
+            }
+
+            generateCode();
+
+            captchaInterval = setInterval(() => {
+                timeLeft -= 50; 
+                const pct = (timeLeft / CONFIG.phase3Time) * 100;
+                timerEl.style.width = pct + "%";
+                
+                if(timeLeft <= 0) {
+                    inputEl.innerText = "EXPIRED";
+                    inputEl.style.color = "red";
+                    setTimeout(() => inputEl.style.color = "var(--upload-color)", 200);
+                    generateCode();
+                }
+            }, 50);
+        }
+
+        /* --- PHASE 4: SHAPES (Visible Drag Animation) --- */
+        function initWires() {
+            addLog("TÂCHE : Connecter les formes");
+            updateTaskProgress(0, CONFIG.phase4Pairs);
+
+            // Tutorial Text
+            const title = document.createElement('div');
+            title.className = 'tutorial-text';
+            title.innerText = "RELIER LES PAIRES";
+            gameArea.appendChild(title);
+
+            // NEW GHOST ANIMATION (Visible Line)
+            const ghost = document.createElement('div');
+            ghost.className = 'ghost-demo';
+            ghost.innerHTML = `
+                <div class="ghost-dot-start"></div>
+                <div class="ghost-line"></div>
+                <div class="ghost-hand">👆</div>
+            `;
+            gameArea.appendChild(ghost);
+
+            const svgNS = "http://www.w3.org/2000/svg";
+            const svg = document.createElementNS(svgNS, "svg");
+            svg.id = "svg-canvas";
+            gameArea.appendChild(svg);
+
+            let dragLine = null;
+            let startDot = null;
+
+            const shapes = ['■', '▲', '◆', '●'];
+            let leftIdx = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
+            let rightIdx = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
+
+            const leftCol = document.createElement('div'); leftCol.className = 'wire-col'; leftCol.style.left = "10%";
+            const rightCol = document.createElement('div'); rightCol.className = 'wire-col'; rightCol.style.right = "10%";
+
+            function createDot(idx, side) {
+                const dot = document.createElement('div');
+                dot.className = 'wire-dot';
+                dot.innerText = shapes[idx]; 
+                dot.dataset.id = idx;        
+                dot.dataset.side = side;
+                
+                dot.addEventListener('mousedown', (e) => {
+                    if (!dot.dataset.connected) {
+                        startDot = dot;
+                        ghost.style.display = 'none'; // Hide tutorial
+
+                        dragLine = document.createElementNS(svgNS, "line");
+                        dragLine.setAttribute("class", "wire-line");
+                        
+                        const rect = dot.getBoundingClientRect();
+                        const svgRect = svg.getBoundingClientRect();
+                        const x = rect.left + rect.width/2 - svgRect.left;
+                        const y = rect.top + rect.height/2 - svgRect.top;
+                        
+                        dragLine.setAttribute("x1", x); dragLine.setAttribute("y1", y);
+                        dragLine.setAttribute("x2", x); dragLine.setAttribute("y2", y);
+                        svg.appendChild(dragLine);
+                    }
+                });
+                return dot;
+            }
+
+            leftIdx.forEach(n => leftCol.appendChild(createDot(n, 'left')));
+            rightIdx.forEach(n => rightCol.appendChild(createDot(n, 'right')));
+
+            gameArea.appendChild(leftCol);
+            gameArea.appendChild(rightCol);
+
+            const moveHandler = (e) => {
+                if (dragLine) {
+                    const svgRect = svg.getBoundingClientRect();
+                    dragLine.setAttribute("x2", e.clientX - svgRect.left);
+                    dragLine.setAttribute("y2", e.clientY - svgRect.top);
+                }
+            };
+
+            const upHandler = (e) => {
+                if (dragLine) {
+                    const el = document.elementFromPoint(e.clientX, e.clientY);
+                    
+                    if (el && el.classList.contains('wire-dot') && el !== startDot) {
+                        if (el.dataset.side !== startDot.dataset.side) {
+                            if (el.dataset.id === startDot.dataset.id) {
+                                const rect = el.getBoundingClientRect();
+                                const svgRect = svg.getBoundingClientRect();
+                                dragLine.setAttribute("x2", rect.left + rect.width/2 - svgRect.left);
+                                dragLine.setAttribute("y2", rect.top + rect.height/2 - svgRect.top);
+                                
+                                startDot.dataset.connected = "true";
+                                el.dataset.connected = "true";
+                                
+                                startDot.style.background = "var(--main-green)"; startDot.style.color = "black";
+                                el.style.background = "var(--main-green)"; el.style.color = "black";
+                                
+                                currentTaskProgress++;
+                                updateTaskProgress(currentTaskProgress, CONFIG.phase4Pairs);
+                                dragLine = null; startDot = null;
+                                return;
+                            }
+                        }
+                    }
+                    svg.removeChild(dragLine);
+                    dragLine = null; startDot = null;
+                }
+            };
+
+            document.addEventListener('mousemove', moveHandler);
+            document.addEventListener('mouseup', upHandler);
+
+            const observer = new MutationObserver(() => {
+                if(!gameArea.contains(svg)) {
+                    document.removeEventListener('mousemove', moveHandler);
+                    document.removeEventListener('mouseup', upHandler);
+                    observer.disconnect();
+                }
+            });
+            observer.observe(gameArea, {childList: true});
+        }
+
+        /* --- PHASE 5: HEX GRID --- */
+        function initHex() {
+            addLog("TÂCHE : Synchroniser la parité");
+            updateTaskProgress(0, 1);
+            let values = [];
+            for(let i=0; i<8; i++) values.push(Math.random() > 0.5 ? 1 : 0);
+            if(values.every(v => v===0) || values.every(v => v===1)) values[0] = 1 - values[0];
+
+            const grid = document.createElement('div');
+            grid.className = 'hex-grid';
+            function render() {
+                grid.innerHTML = '';
+                let allZero = values.every(v => v === 0);
+                let allOne = values.every(v => v === 1);
+                values.forEach((val, idx) => {
+                    const hex = document.createElement('div');
+                    hex.className = 'hex ' + (val === 1 ? 'active' : '');
+                    hex.innerText = val;
+                    hex.onclick = () => { values[idx] = 1 - values[idx]; render(); };
+                    grid.appendChild(hex);
+                });
+                if (allZero || allOne) setTimeout(() => updateTaskProgress(1, 1), 200);
+            }
+            render();
+            gameArea.appendChild(grid);
         }
     </script>
 </body>
-
 </html>
-
