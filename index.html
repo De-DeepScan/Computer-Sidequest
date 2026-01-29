@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LINK - TRANSFERT DE RESSOURCES V5</title>
+    <title>LINK - TRANSFERT DE RESSOURCES V7</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
@@ -15,6 +15,7 @@
             --main-green: #00ff41; 
             --dim-green: #008F11;
             --upload-color: #00ffff;
+            --fail-color: #ff3333;
             --font-stack: 'VT323', monospace;
         }
 
@@ -83,28 +84,25 @@
             font-size: 24px; box-shadow: 0 0 8px var(--upload-color); animation: pulse 1s infinite alternate;
         }
 
-        /* --- PHASE 3: Captcha Code --- */
+        /* --- PHASE 3: Captcha --- */
         .captcha-box { 
             text-align: center; width: 80%; padding: 20px; border: 2px solid var(--dim-green); 
             background: rgba(0,20,0,0.8); margin-bottom: 20px;
         }
         .sequence-display { 
             font-size: 4rem; margin-bottom: 10px; letter-spacing: 5px; 
-            font-family: 'VT323', monospace; font-weight: normal;
-            /* REMOVED SKEW/BLUR */
-            color: white;
+            font-family: 'VT323', monospace; font-weight: normal; color: white;
         }
         .timer-track { width: 100%; height: 10px; background: #222; margin-top: 10px; border: 1px solid #555; }
         .timer-fill { height: 100%; width: 100%; background: var(--upload-color); transition: width 0.05s linear; }
-        
         .keypad { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
         .key-btn {
             background: black; border: 2px solid var(--main-green); color: var(--main-green);
             width: 80px; height: 60px; font-size: 2rem; font-family: var(--font-stack); cursor: pointer;
         }
         .key-btn:active { background: var(--main-green); color: black; }
-        .key-back { border-color: #ff3333; color: #ff3333; }
-        .key-back:active { background: #ff3333; color: white; }
+        .key-back { border-color: var(--fail-color); color: var(--fail-color); }
+        .key-back:active { background: var(--fail-color); color: white; }
 
         /* --- PHASE 4: Wires --- */
         #svg-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
@@ -121,52 +119,19 @@
         .wire-dot:hover { background: var(--dim-green); color: black; }
         .wire-line { stroke: var(--main-green); stroke-width: 4; stroke-linecap: round; }
         
-        /* Phase 4 Tutorial Animation */
-        .tutorial-text { 
-            position: absolute; top: 5%; width: 100%; text-align: center; 
-            font-size: 1.5rem; animation: blink 2s infinite; color: var(--upload-color); 
-        }
+        .tutorial-text { position: absolute; top: 5%; width: 100%; text-align: center; font-size: 1.5rem; animation: blink 2s infinite; color: var(--upload-color); }
         
-        /* New Ghost Animation Container */
+        /* UPDATED GHOST DEMO (Green + Positioned over top-left dot) */
         .ghost-demo {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            position: absolute; 
+            /* Roughly aligns with the first dot in the left column (Left 10% + offset) */
+            top: 22%; left: 12.5%; 
             width: 200px; height: 50px; pointer-events: none; z-index: 5;
-            display: flex; align-items: center;
-            animation: fade-ghost 2s infinite;
+            display: flex; align-items: center; animation: fade-ghost 2s infinite;
         }
-        .ghost-dot-start {
-            width: 10px; height: 10px; background: var(--upload-color); border-radius: 50%;
-        }
-        .ghost-line {
-            height: 4px; background: var(--upload-color);
-            width: 0%; /* Animates to 100% */
-            animation: grow-line 2s infinite;
-            transform-origin: left;
-        }
-        .ghost-hand {
-            font-size: 2rem; margin-left: -10px;
-            animation: move-hand 2s infinite;
-        }
-
-        @keyframes grow-line {
-            0% { width: 0; }
-            20% { width: 0; }
-            70% { width: 100%; }
-            100% { width: 100%; }
-        }
-        @keyframes move-hand {
-            0% { transform: translateX(0); }
-            20% { transform: translateX(0); }
-            70% { transform: translateX(180px); }
-            100% { transform: translateX(180px); }
-        }
-        @keyframes fade-ghost {
-            0% { opacity: 0; }
-            20% { opacity: 1; }
-            80% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-
+        .ghost-dot-start { width: 12px; height: 12px; background: var(--main-green); border-radius: 50%; box-shadow: 0 0 10px var(--main-green); }
+        .ghost-line { height: 4px; background: var(--main-green); width: 0%; animation: grow-line 2s infinite; transform-origin: left; box-shadow: 0 0 5px var(--main-green); }
+        .ghost-hand { font-size: 2rem; margin-left: -10px; animation: move-hand 2s infinite; filter: drop-shadow(0 0 2px var(--main-green)); }
 
         /* --- PHASE 5: Hexagons --- */
         .hex-grid { display: flex; flex-wrap: wrap; width: 320px; justify-content: center; gap: 10px; }
@@ -180,17 +145,57 @@
         .hex:hover { background-color: #005500; }
         .hex.active { color: var(--upload-color); text-shadow: 0 0 10px var(--upload-color); }
 
+        /* --- PHASE 6: Skill Check --- */
+        .skill-container {
+            position: relative; width: 300px; height: 300px;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .skill-circle {
+            position: absolute; width: 100%; height: 100%;
+            border-radius: 50%; border: 8px solid #333;
+            box-shadow: 0 0 20px rgba(0,255,0,0.1);
+        }
+        .skill-zone {
+            position: absolute; width: 100%; height: 100%;
+            border-radius: 50%;
+            mask: radial-gradient(transparent 60%, black 61%);
+            -webkit-mask: radial-gradient(transparent 60%, black 61%);
+        }
+        .skill-needle {
+            position: absolute; width: 4px; height: 50%;
+            background: red; bottom: 50%; left: calc(50% - 2px);
+            transform-origin: bottom center;
+            border-radius: 2px;
+            z-index: 10;
+        }
+        .skill-btn {
+            position: absolute; z-index: 20;
+            width: 100px; height: 100px; border-radius: 50%;
+            background: rgba(0,0,0,0.8); border: 2px solid var(--main-green);
+            color: var(--main-green); font-size: 1.5rem; font-family: var(--font-stack);
+            cursor: pointer; box-shadow: 0 0 15px var(--dim-green);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .skill-btn:active { background: var(--main-green); color: black; }
+        .fail-anim { animation: shake 0.5s; border-color: var(--fail-color) !important; }
+
         /* --- MISC --- */
-        .status-message { font-size: 2.5rem; text-align: center; animation: blink 1s infinite; }
         .sending-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); display: flex; flex-direction: column;
             justify-content: center; align-items: center; z-index: 100;
         }
+        .sending-text { font-size: 3rem; color: var(--upload-color); margin-bottom: 20px; animation: blink 0.5s infinite; }
         #log-area { height: 120px; border-top: 1px solid var(--dim-green); padding: 10px; font-size: 1.1rem; opacity: 0.7; display: flex; flex-direction: column; justify-content: flex-end; }
         .log-entry::before { content: ">> "; color: var(--dim-green); }
 
+        @keyframes pulse { from { opacity: 0.8; transform: scale(1); } to { opacity: 1; transform: scale(1.05); } }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        @keyframes grow-line { 0% { width: 0; } 20% { width: 0; } 70% { width: 200px; } 100% { width: 200px; } }
+        @keyframes move-hand { 0% { transform: translateX(0); } 20% { transform: translateX(0); } 70% { transform: translateX(200px); } 100% { transform: translateX(200px); } }
+        @keyframes fade-ghost { 0% { opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); } }
+
     </style>
 </head>
 <body>
@@ -200,7 +205,7 @@
     <div class="container">
         <header>
             <div class="header-info">
-                <div class="header-title">UPLINK V5.0</div>
+                <div class="header-title">UPLINK V7.0</div>
                 <div style="font-size: 0.9rem; opacity: 0.7;">DESTINATAIRE: UNITÉ ALPHA</div>
             </div>
             <div class="resource-counter-box">
@@ -237,7 +242,10 @@
             phase2Targets: 6,    
             phase3CodeLength: 4,  
             phase3Time: 5000,   
-            phase4Pairs: 4,     
+            phase4Pairs: 4,
+            phase6Rounds: 3,  
+            phase6Speed: 3,   
+            
             delayTime: 1500
         };
 
@@ -249,8 +257,8 @@
         let phaseQueue = []; 
         let lastPhasePlayed = 0; 
         
-        // Timers
         let captchaInterval;
+        let skillFrame; 
 
         /* --- DOM ELEMENTS --- */
         const gameArea = document.getElementById('game-area');
@@ -275,6 +283,8 @@
 
         function finishPackage() {
             clearInterval(captchaInterval); 
+            cancelAnimationFrame(skillFrame);
+
             gameArea.innerHTML = `
                 <div class="sending-overlay">
                     <div class="sending-text">ENVOI DU PAQUET...</div>
@@ -309,9 +319,9 @@
             if(logArea.children.length > 5) logArea.removeChild(logArea.children[0]);
         }
 
-        /* --- RANDOMIZER (1-5 only) --- */
+        /* --- RANDOMIZER --- */
         function generateQueue() {
-            let batch = [1, 2, 3, 4, 5]; // REMOVED 6
+            let batch = [1, 2, 3, 4, 5, 6]; 
             for (let i = batch.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [batch[i], batch[j]] = [batch[j], batch[i]];
@@ -337,6 +347,7 @@
             if (currentPhase === 3) initCaptcha();
             if (currentPhase === 4) initWires();
             if (currentPhase === 5) initHex();
+            if (currentPhase === 6) initSkillCheck();
         }
 
         /* --- PHASE 1: CLICKER --- */
@@ -379,14 +390,11 @@
             spawn();
         }
 
-        /* --- PHASE 3: CAPTCHA (Straight Line) --- */
+        /* --- PHASE 3: CAPTCHA --- */
         function initCaptcha() {
             addLog("TÂCHE : Saisie Captcha Rapide");
             updateTaskProgress(0, 1);
-
-            let seq = "";
-            let input = "";
-            let timeLeft = CONFIG.phase3Time;
+            let seq = "", input = "", timeLeft = CONFIG.phase3Time;
 
             const container = document.createElement('div');
             container.className = 'terminal-container';
@@ -398,10 +406,8 @@
                 </div>
                 <div id="user-input" style="color:var(--upload-color); font-size:2rem; margin-bottom:10px;">> _</div>
             `;
-            
             const keypad = document.createElement('div');
             keypad.className = 'keypad';
-            
             ['0', '1', '<'].forEach(key => {
                 const btn = document.createElement('button');
                 btn.className = 'key-btn' + (key === '<' ? ' key-back' : '');
@@ -420,118 +426,68 @@
                 seq = "";
                 for(let i=0; i<CONFIG.phase3CodeLength; i++) seq += Math.floor(Math.random() * 2);
                 displayEl.innerText = seq.split('').join(' ');
-                input = "";
-                inputEl.innerText = "> _";
-                timeLeft = CONFIG.phase3Time;
+                input = ""; inputEl.innerText = "> _"; timeLeft = CONFIG.phase3Time;
             }
 
             function handleInput(key) {
-                if(key === '<') {
-                    input = input.slice(0, -1);
-                } else {
-                    if(input.length < seq.length) input += key;
-                }
-                
+                if(key === '<') input = input.slice(0, -1);
+                else if(input.length < seq.length) input += key;
                 inputEl.innerText = "> " + input;
-                
                 if (input.length === seq.length) {
-                    if (input === seq) {
-                        clearInterval(captchaInterval);
-                        updateTaskProgress(1, 1);
-                    } else {
-                        inputEl.style.color = "red";
-                        setTimeout(() => inputEl.style.color = "var(--upload-color)", 200);
-                        input = "";
-                        inputEl.innerText = "> _";
-                    }
+                    if (input === seq) { clearInterval(captchaInterval); updateTaskProgress(1, 1); }
+                    else { inputEl.style.color = "red"; setTimeout(() => inputEl.style.color = "var(--upload-color)", 200); input = ""; inputEl.innerText = "> _"; }
                 }
             }
 
             generateCode();
-
             captchaInterval = setInterval(() => {
                 timeLeft -= 50; 
-                const pct = (timeLeft / CONFIG.phase3Time) * 100;
-                timerEl.style.width = pct + "%";
-                
+                timerEl.style.width = (timeLeft / CONFIG.phase3Time) * 100 + "%";
                 if(timeLeft <= 0) {
-                    inputEl.innerText = "EXPIRED";
-                    inputEl.style.color = "red";
+                    inputEl.innerText = "EXPIRED"; inputEl.style.color = "red"; 
                     setTimeout(() => inputEl.style.color = "var(--upload-color)", 200);
                     generateCode();
                 }
             }, 50);
         }
 
-        /* --- PHASE 4: SHAPES (Visible Drag Animation) --- */
+        /* --- PHASE 4: WIRES --- */
         function initWires() {
             addLog("TÂCHE : Connecter les formes");
             updateTaskProgress(0, CONFIG.phase4Pairs);
 
-            // Tutorial Text
-            const title = document.createElement('div');
-            title.className = 'tutorial-text';
-            title.innerText = "RELIER LES PAIRES";
-            gameArea.appendChild(title);
-
-            // NEW GHOST ANIMATION (Visible Line)
-            const ghost = document.createElement('div');
-            ghost.className = 'ghost-demo';
-            ghost.innerHTML = `
-                <div class="ghost-dot-start"></div>
-                <div class="ghost-line"></div>
-                <div class="ghost-hand">👆</div>
-            `;
+            const title = document.createElement('div'); title.className = 'tutorial-text'; title.innerText = "RELIER LES PAIRES"; gameArea.appendChild(title);
+            
+            // NEW GHOST ANIMATION (Green line, positioned over top-left dot)
+            const ghost = document.createElement('div'); ghost.className = 'ghost-demo';
+            ghost.innerHTML = `<div class="ghost-dot-start"></div><div class="ghost-line"></div><div class="ghost-hand">👆</div>`;
             gameArea.appendChild(ghost);
 
             const svgNS = "http://www.w3.org/2000/svg";
-            const svg = document.createElementNS(svgNS, "svg");
-            svg.id = "svg-canvas";
-            gameArea.appendChild(svg);
-
-            let dragLine = null;
-            let startDot = null;
-
+            const svg = document.createElementNS(svgNS, "svg"); svg.id = "svg-canvas"; gameArea.appendChild(svg);
+            let dragLine = null, startDot = null;
             const shapes = ['■', '▲', '◆', '●'];
             let leftIdx = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
             let rightIdx = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
-
             const leftCol = document.createElement('div'); leftCol.className = 'wire-col'; leftCol.style.left = "10%";
             const rightCol = document.createElement('div'); rightCol.className = 'wire-col'; rightCol.style.right = "10%";
 
             function createDot(idx, side) {
-                const dot = document.createElement('div');
-                dot.className = 'wire-dot';
-                dot.innerText = shapes[idx]; 
-                dot.dataset.id = idx;        
-                dot.dataset.side = side;
-                
+                const dot = document.createElement('div'); dot.className = 'wire-dot'; dot.innerText = shapes[idx]; dot.dataset.id = idx; dot.dataset.side = side;
                 dot.addEventListener('mousedown', (e) => {
                     if (!dot.dataset.connected) {
-                        startDot = dot;
-                        ghost.style.display = 'none'; // Hide tutorial
-
-                        dragLine = document.createElementNS(svgNS, "line");
-                        dragLine.setAttribute("class", "wire-line");
-                        
-                        const rect = dot.getBoundingClientRect();
-                        const svgRect = svg.getBoundingClientRect();
-                        const x = rect.left + rect.width/2 - svgRect.left;
-                        const y = rect.top + rect.height/2 - svgRect.top;
-                        
-                        dragLine.setAttribute("x1", x); dragLine.setAttribute("y1", y);
-                        dragLine.setAttribute("x2", x); dragLine.setAttribute("y2", y);
+                        startDot = dot; ghost.style.display = 'none';
+                        dragLine = document.createElementNS(svgNS, "line"); dragLine.setAttribute("class", "wire-line");
+                        const rect = dot.getBoundingClientRect(); const svgRect = svg.getBoundingClientRect();
+                        const x = rect.left + rect.width/2 - svgRect.left; const y = rect.top + rect.height/2 - svgRect.top;
+                        dragLine.setAttribute("x1", x); dragLine.setAttribute("y1", y); dragLine.setAttribute("x2", x); dragLine.setAttribute("y2", y);
                         svg.appendChild(dragLine);
                     }
                 });
                 return dot;
             }
-
-            leftIdx.forEach(n => leftCol.appendChild(createDot(n, 'left')));
-            rightIdx.forEach(n => rightCol.appendChild(createDot(n, 'right')));
-
-            gameArea.appendChild(leftCol);
-            gameArea.appendChild(rightCol);
+            leftIdx.forEach(n => leftCol.appendChild(createDot(n, 'left'))); rightIdx.forEach(n => rightCol.appendChild(createDot(n, 'right')));
+            gameArea.appendChild(leftCol); gameArea.appendChild(rightCol);
 
             const moveHandler = (e) => {
                 if (dragLine) {
@@ -540,76 +496,108 @@
                     dragLine.setAttribute("y2", e.clientY - svgRect.top);
                 }
             };
-
             const upHandler = (e) => {
                 if (dragLine) {
                     const el = document.elementFromPoint(e.clientX, e.clientY);
-                    
-                    if (el && el.classList.contains('wire-dot') && el !== startDot) {
-                        if (el.dataset.side !== startDot.dataset.side) {
-                            if (el.dataset.id === startDot.dataset.id) {
-                                const rect = el.getBoundingClientRect();
-                                const svgRect = svg.getBoundingClientRect();
-                                dragLine.setAttribute("x2", rect.left + rect.width/2 - svgRect.left);
-                                dragLine.setAttribute("y2", rect.top + rect.height/2 - svgRect.top);
-                                
-                                startDot.dataset.connected = "true";
-                                el.dataset.connected = "true";
-                                
-                                startDot.style.background = "var(--main-green)"; startDot.style.color = "black";
-                                el.style.background = "var(--main-green)"; el.style.color = "black";
-                                
-                                currentTaskProgress++;
-                                updateTaskProgress(currentTaskProgress, CONFIG.phase4Pairs);
-                                dragLine = null; startDot = null;
-                                return;
-                            }
-                        }
+                    if (el && el.classList.contains('wire-dot') && el !== startDot && el.dataset.side !== startDot.dataset.side && el.dataset.id === startDot.dataset.id) {
+                        const rect = el.getBoundingClientRect(); const svgRect = svg.getBoundingClientRect();
+                        dragLine.setAttribute("x2", rect.left + rect.width/2 - svgRect.left); dragLine.setAttribute("y2", rect.top + rect.height/2 - svgRect.top);
+                        startDot.dataset.connected = "true"; el.dataset.connected = "true";
+                        startDot.style.background = "var(--main-green)"; startDot.style.color = "black";
+                        el.style.background = "var(--main-green)"; el.style.color = "black";
+                        updateTaskProgress(currentTaskProgress + 1, CONFIG.phase4Pairs);
+                        dragLine = null; startDot = null; return;
                     }
-                    svg.removeChild(dragLine);
-                    dragLine = null; startDot = null;
+                    svg.removeChild(dragLine); dragLine = null; startDot = null;
                 }
             };
-
-            document.addEventListener('mousemove', moveHandler);
-            document.addEventListener('mouseup', upHandler);
-
-            const observer = new MutationObserver(() => {
-                if(!gameArea.contains(svg)) {
-                    document.removeEventListener('mousemove', moveHandler);
-                    document.removeEventListener('mouseup', upHandler);
-                    observer.disconnect();
-                }
-            });
+            document.addEventListener('mousemove', moveHandler); document.addEventListener('mouseup', upHandler);
+            const observer = new MutationObserver(() => { if(!gameArea.contains(svg)) { document.removeEventListener('mousemove', moveHandler); document.removeEventListener('mouseup', upHandler); observer.disconnect(); } });
             observer.observe(gameArea, {childList: true});
         }
 
         /* --- PHASE 5: HEX GRID --- */
         function initHex() {
-            addLog("TÂCHE : Synchroniser la parité");
-            updateTaskProgress(0, 1);
-            let values = [];
-            for(let i=0; i<8; i++) values.push(Math.random() > 0.5 ? 1 : 0);
+            addLog("TÂCHE : Synchroniser la parité"); updateTaskProgress(0, 1);
+            let values = []; for(let i=0; i<8; i++) values.push(Math.random() > 0.5 ? 1 : 0);
             if(values.every(v => v===0) || values.every(v => v===1)) values[0] = 1 - values[0];
-
-            const grid = document.createElement('div');
-            grid.className = 'hex-grid';
+            const grid = document.createElement('div'); grid.className = 'hex-grid';
             function render() {
                 grid.innerHTML = '';
-                let allZero = values.every(v => v === 0);
-                let allOne = values.every(v => v === 1);
+                let allZero = values.every(v => v === 0); let allOne = values.every(v => v === 1);
                 values.forEach((val, idx) => {
-                    const hex = document.createElement('div');
-                    hex.className = 'hex ' + (val === 1 ? 'active' : '');
-                    hex.innerText = val;
+                    const hex = document.createElement('div'); hex.className = 'hex ' + (val === 1 ? 'active' : ''); hex.innerText = val;
                     hex.onclick = () => { values[idx] = 1 - values[idx]; render(); };
                     grid.appendChild(hex);
                 });
                 if (allZero || allOne) setTimeout(() => updateTaskProgress(1, 1), 200);
             }
-            render();
-            gameArea.appendChild(grid);
+            render(); gameArea.appendChild(grid);
         }
+
+        /* --- PHASE 6: SKILL CHECK (Dead by Daylight Style + REVERSE LOGIC) --- */
+        function initSkillCheck() {
+            addLog("TÂCHE : Calibrage rotatif");
+            updateTaskProgress(0, CONFIG.phase6Rounds);
+
+            const container = document.createElement('div'); container.className = 'skill-container';
+            const circle = document.createElement('div'); circle.className = 'skill-circle'; container.appendChild(circle);
+            const zone = document.createElement('div'); zone.className = 'skill-zone'; container.appendChild(zone);
+            const needle = document.createElement('div'); needle.className = 'skill-needle'; container.appendChild(needle);
+            const btn = document.createElement('button'); btn.className = 'skill-btn'; btn.innerText = "STOP"; container.appendChild(btn);
+
+            gameArea.appendChild(container);
+
+            let angle = 0;
+            let speed = CONFIG.phase6Speed;
+            let direction = 1; // 1 = clockwise, -1 = counter-clockwise
+            let targetStart = 0;
+            let targetWidth = 45; 
+
+            function resetZone() {
+                targetStart = Math.floor(Math.random() * 300) + 15;
+                const targetEnd = targetStart + targetWidth;
+                zone.style.background = `conic-gradient(transparent ${targetStart}deg, #888 ${targetStart}deg, white ${targetEnd}deg, transparent ${targetEnd}deg)`;
+            }
+
+            function loop() {
+                // Apply direction to speed
+                angle += speed * direction;
+                
+                // Wrap logic for both directions
+                if (angle >= 360) angle = 0;
+                if (angle < 0) angle = 360;
+
+                needle.style.transform = `rotate(${angle}deg)`;
+                skillFrame = requestAnimationFrame(loop);
+            }
+
+            btn.onmousedown = () => {
+                // CSS rotation is 0 at top. Conic gradient is 0 at top.
+                // However, negative angles need normalization for comparison
+                let normAngle = angle;
+                if (normAngle < 0) normAngle += 360;
+
+                let hit = (normAngle >= targetStart && normAngle <= (targetStart + targetWidth));
+
+                if (hit) {
+                    updateTaskProgress(currentTaskProgress + 1, CONFIG.phase6Rounds);
+                    if (currentTaskProgress < CONFIG.phase6Rounds) {
+                        resetZone();
+                        speed += 1; 
+                        direction *= -1; // SWAP DIRECTION ON SUCCESS
+                    }
+                } else {
+                    container.classList.add('fail-anim');
+                    setTimeout(() => container.classList.remove('fail-anim'), 500);
+                    speed = CONFIG.phase6Speed; 
+                }
+            };
+
+            resetZone();
+            loop();
+        }
+
     </script>
 </body>
 </html>
