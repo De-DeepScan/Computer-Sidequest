@@ -3,205 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LINK - TRANSFERT DE RESSOURCES V7</title>
+    <title>LINK - SIDEQUEST UPLINK</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
-    
+
+    <script src="http://192.168.10.1:3000/socket.io/socket.io.js"></script>
+    <script src="gamemaster-client.js"></script>
+
     <style>
-        /* --- CSS STYLES --- */
-        :root {
-            --bg-color: #050505;
-            --main-green: #00ff41; 
-            --dim-green: #008F11;
-            --upload-color: #00ffff;
-            --fail-color: #ff3333;
-            --font-stack: 'VT323', monospace;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--main-green);
-            font-family: var(--font-stack);
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            overflow: hidden;
-            user-select: none;
-        }
-
-        .scanlines {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
-            background-size: 100% 4px; pointer-events: none; z-index: 999;
-        }
-
-        .container {
-            display: flex; flex-direction: column; height: 100%;
-            padding: 20px; box-sizing: border-box; position: relative;
-        }
-
-        /* HEADER */
-        header {
-            border: 2px solid var(--main-green); padding: 15px; margin-bottom: 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(0, 20, 0, 0.5); box-shadow: 0 0 15px var(--dim-green);
-        }
+        /* (Ton CSS original, inchangé) */
+        :root { --bg-color: #050505; --main-green: #00ff41; --dim-green: #008F11; --upload-color: #00ffff; --fail-color: #ff3333; --font-stack: 'VT323', monospace; }
+        body { background-color: var(--bg-color); color: var(--main-green); font-family: var(--font-stack); margin: 0; padding: 0; height: 100vh; overflow: hidden; user-select: none; }
+        .scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1)); background-size: 100% 4px; pointer-events: none; z-index: 999; }
+        .container { display: flex; flex-direction: column; height: 100%; padding: 20px; box-sizing: border-box; position: relative; }
+        header { border: 2px solid var(--main-green); padding: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(0, 20, 0, 0.5); box-shadow: 0 0 15px var(--dim-green); }
         .header-title { font-size: 1.5rem; letter-spacing: 2px; text-transform: uppercase; }
         .resource-value { font-size: 2.5rem; font-weight: bold; line-height: 1; text-align: right; }
-
-        /* UPLOAD BAR */
-        .upload-container {
-            width: 100%; height: 20px; background-color: #001100;
-            border: 1px solid var(--dim-green); margin-top: 10px; position: relative;
-        }
-        .upload-bar {
-            height: 100%; width: 0%; background-color: var(--upload-color);
-            transition: width 0.2s ease-out; box-shadow: 0 0 10px var(--upload-color);
-        }
-
-        /* GAME AREA */
-        #game-area {
-            flex-grow: 1; border: 2px solid var(--dim-green); margin-bottom: 20px;
-            position: relative; background: rgba(0, 15, 20, 0.2);
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            overflow: hidden;
-        }
-
-        /* --- PHASE 1: Clicker --- */
-        .big-button {
-            background: black; border: 4px solid var(--main-green); color: var(--main-green);
-            padding: 25px 50px; font-size: 2.5rem; font-family: var(--font-stack);
-            cursor: pointer; box-shadow: 0 0 15px var(--main-green); text-transform: uppercase;
-        }
+        .upload-container { width: 100%; height: 20px; background-color: #001100; border: 1px solid var(--dim-green); margin-top: 10px; position: relative; }
+        .upload-bar { height: 100%; width: 0%; background-color: var(--upload-color); transition: width 0.2s ease-out; box-shadow: 0 0 10px var(--upload-color); }
+        #game-area { flex-grow: 1; border: 2px solid var(--dim-green); margin-bottom: 20px; position: relative; background: rgba(0, 15, 20, 0.2); display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; }
+        
+        /* Elements Phases */
+        .big-button { background: black; border: 4px solid var(--main-green); color: var(--main-green); padding: 25px 50px; font-size: 2.5rem; font-family: var(--font-stack); cursor: pointer; box-shadow: 0 0 15px var(--main-green); text-transform: uppercase; }
         .big-button:active { background: var(--main-green); color: black; transform: scale(0.95); }
-
-        /* --- PHASE 2: Targets --- */
-        .target-node {
-            position: absolute; width: 60px; height: 60px;
-            border: 2px solid var(--upload-color); background: rgba(0, 255, 255, 0.1);
-            color: var(--upload-color); cursor: pointer; display: flex; justify-content: center; align-items: center;
-            font-size: 24px; box-shadow: 0 0 8px var(--upload-color); animation: pulse 1s infinite alternate;
-        }
-
-        /* --- PHASE 3: Captcha --- */
-        .captcha-box { 
-            text-align: center; width: 80%; padding: 20px; border: 2px solid var(--dim-green); 
-            background: rgba(0,20,0,0.8); margin-bottom: 20px;
-        }
-        .sequence-display { 
-            font-size: 4rem; margin-bottom: 10px; letter-spacing: 5px; 
-            font-family: 'VT323', monospace; font-weight: normal; color: white;
-        }
+        .target-node { position: absolute; width: 60px; height: 60px; border: 2px solid var(--upload-color); background: rgba(0, 255, 255, 0.1); color: var(--upload-color); cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 24px; box-shadow: 0 0 8px var(--upload-color); animation: pulse 1s infinite alternate; }
+        .captcha-box { text-align: center; width: 80%; padding: 20px; border: 2px solid var(--dim-green); background: rgba(0,20,0,0.8); margin-bottom: 20px; }
+        .sequence-display { font-size: 4rem; margin-bottom: 10px; letter-spacing: 5px; font-family: 'VT323', monospace; font-weight: normal; color: white; }
         .timer-track { width: 100%; height: 10px; background: #222; margin-top: 10px; border: 1px solid #555; }
         .timer-fill { height: 100%; width: 100%; background: var(--upload-color); transition: width 0.05s linear; }
         .keypad { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
-        .key-btn {
-            background: black; border: 2px solid var(--main-green); color: var(--main-green);
-            width: 80px; height: 60px; font-size: 2rem; font-family: var(--font-stack); cursor: pointer;
-        }
+        .key-btn { background: black; border: 2px solid var(--main-green); color: var(--main-green); width: 80px; height: 60px; font-size: 2rem; font-family: var(--font-stack); cursor: pointer; }
         .key-btn:active { background: var(--main-green); color: black; }
         .key-back { border-color: var(--fail-color); color: var(--fail-color); }
-        .key-back:active { background: var(--fail-color); color: white; }
-
-        /* --- PHASE 4: Wires --- */
         #svg-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        .wire-col { 
-            display: flex; flex-direction: column; justify-content: space-around; 
-            height: 70%; position: absolute; width: 60px; top: 15%;
-        }
-        .wire-dot {
-            width: 50px; height: 50px; border-radius: 50%; background: #000;
-            border: 3px solid var(--main-green); position: relative; z-index: 10;
-            display: flex; justify-content: center; align-items: center; cursor: pointer;
-            font-size: 2rem; color: var(--main-green); margin: 0 auto;
-        }
+        .wire-col { display: flex; flex-direction: column; justify-content: space-around; height: 70%; position: absolute; width: 60px; top: 15%; }
+        .wire-dot { width: 50px; height: 50px; border-radius: 50%; background: #000; border: 3px solid var(--main-green); position: relative; z-index: 10; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 2rem; color: var(--main-green); margin: 0 auto; }
         .wire-dot:hover { background: var(--dim-green); color: black; }
         .wire-line { stroke: var(--main-green); stroke-width: 4; stroke-linecap: round; }
-        
         .tutorial-text { position: absolute; top: 5%; width: 100%; text-align: center; font-size: 1.5rem; animation: blink 2s infinite; color: var(--upload-color); }
-        
-        /* UPDATED GHOST DEMO (Green + Positioned over top-left dot) */
-        .ghost-demo {
-            position: absolute; 
-            /* Roughly aligns with the first dot in the left column (Left 10% + offset) */
-            top: 22%; left: 12.5%; 
-            width: 200px; height: 50px; pointer-events: none; z-index: 5;
-            display: flex; align-items: center; animation: fade-ghost 2s infinite;
-        }
+        .ghost-demo { position: absolute; top: 22%; left: 12.5%; width: 200px; height: 50px; pointer-events: none; z-index: 5; display: flex; align-items: center; animation: fade-ghost 2s infinite; }
         .ghost-dot-start { width: 12px; height: 12px; background: var(--main-green); border-radius: 50%; box-shadow: 0 0 10px var(--main-green); }
         .ghost-line { height: 4px; background: var(--main-green); width: 0%; animation: grow-line 2s infinite; transform-origin: left; box-shadow: 0 0 5px var(--main-green); }
         .ghost-hand { font-size: 2rem; margin-left: -10px; animation: move-hand 2s infinite; filter: drop-shadow(0 0 2px var(--main-green)); }
-
-        /* --- PHASE 5: Hexagons --- */
         .hex-grid { display: flex; flex-wrap: wrap; width: 320px; justify-content: center; gap: 10px; }
-        .hex {
-            width: 80px; height: 70px; background-color: #003300;
-            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-            display: flex; justify-content: center; align-items: center;
-            font-size: 2.5rem; cursor: pointer; border: none; color: var(--main-green);
-            transition: background 0.2s;
-        }
+        .hex { width: 80px; height: 70px; background-color: #003300; clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); display: flex; justify-content: center; align-items: center; font-size: 2.5rem; cursor: pointer; border: none; color: var(--main-green); transition: background 0.2s; }
         .hex:hover { background-color: #005500; }
         .hex.active { color: var(--upload-color); text-shadow: 0 0 10px var(--upload-color); }
-
-        /* --- PHASE 6: Skill Check --- */
-        .skill-container {
-            position: relative; width: 300px; height: 300px;
-            display: flex; justify-content: center; align-items: center;
-        }
-        .skill-circle {
-            position: absolute; width: 100%; height: 100%;
-            border-radius: 50%; border: 8px solid #333;
-            box-shadow: 0 0 20px rgba(0,255,0,0.1);
-        }
-        .skill-zone {
-            position: absolute; width: 100%; height: 100%;
-            border-radius: 50%;
-            mask: radial-gradient(transparent 60%, black 61%);
-            -webkit-mask: radial-gradient(transparent 60%, black 61%);
-        }
-        .skill-needle {
-            position: absolute; width: 4px; height: 50%;
-            background: red; bottom: 50%; left: calc(50% - 2px);
-            transform-origin: bottom center;
-            border-radius: 2px;
-            z-index: 10;
-        }
-        .skill-btn {
-            position: absolute; z-index: 20;
-            width: 100px; height: 100px; border-radius: 50%;
-            background: rgba(0,0,0,0.8); border: 2px solid var(--main-green);
-            color: var(--main-green); font-size: 1.5rem; font-family: var(--font-stack);
-            cursor: pointer; box-shadow: 0 0 15px var(--dim-green);
-            display: flex; justify-content: center; align-items: center;
-        }
+        .skill-container { position: relative; width: 300px; height: 300px; display: flex; justify-content: center; align-items: center; }
+        .skill-circle { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 8px solid #333; box-shadow: 0 0 20px rgba(0,255,0,0.1); }
+        .skill-zone { position: absolute; width: 100%; height: 100%; border-radius: 50%; mask: radial-gradient(transparent 60%, black 61%); -webkit-mask: radial-gradient(transparent 60%, black 61%); }
+        .skill-needle { position: absolute; width: 4px; height: 50%; background: red; bottom: 50%; left: calc(50% - 2px); transform-origin: bottom center; border-radius: 2px; z-index: 10; }
+        .skill-btn { position: absolute; z-index: 20; width: 100px; height: 100px; border-radius: 50%; background: rgba(0,0,0,0.8); border: 2px solid var(--main-green); color: var(--main-green); font-size: 1.5rem; font-family: var(--font-stack); cursor: pointer; box-shadow: 0 0 15px var(--dim-green); display: flex; justify-content: center; align-items: center; }
         .skill-btn:active { background: var(--main-green); color: black; }
         .fail-anim { animation: shake 0.5s; border-color: var(--fail-color) !important; }
-
-        /* --- MISC --- */
-        .sending-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 100;
-        }
+        .sending-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
         .sending-text { font-size: 3rem; color: var(--upload-color); margin-bottom: 20px; animation: blink 0.5s infinite; }
         #log-area { height: 120px; border-top: 1px solid var(--dim-green); padding: 10px; font-size: 1.1rem; opacity: 0.7; display: flex; flex-direction: column; justify-content: flex-end; }
         .log-entry::before { content: ">> "; color: var(--dim-green); }
-
         @keyframes pulse { from { opacity: 0.8; transform: scale(1); } to { opacity: 1; transform: scale(1.05); } }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
         @keyframes grow-line { 0% { width: 0; } 20% { width: 0; } 70% { width: 200px; } 100% { width: 200px; } }
         @keyframes move-hand { 0% { transform: translateX(0); } 20% { transform: translateX(0); } 70% { transform: translateX(200px); } 100% { transform: translateX(200px); } }
         @keyframes fade-ghost { 0% { opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
         @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); } }
-
     </style>
 </head>
 <body>
-
     <div class="scanlines"></div>
-
     <div class="container">
         <header>
             <div class="header-info">
@@ -213,7 +82,6 @@
                 <div class="resource-value" id="total-sent">0</div>
             </div>
         </header>
-
         <div style="margin-bottom: 5px; display:flex; justify-content:space-between;">
             <span>CHARGEMENT PAQUET EN COURS...</span>
             <span id="package-percent">0%</span>
@@ -221,46 +89,90 @@
         <div class="upload-container">
             <div class="upload-bar" id="current-upload-bar"></div>
         </div>
-
         <div id="game-area">
             <div id="start-btn" class="status-message" style="cursor: pointer; border: 2px solid var(--main-green); padding: 20px;">
                 INITIALISER LE TRANSFERT
             </div>
         </div>
-
         <div id="log-area">
             <div class="log-entry">Système de transfert prêt.</div>
         </div>
     </div>
 
     <script>
-        /* --- CONFIGURATION --- */
+        // ==========================================
+        // CONFIGURATION GAMEMASTER (SDK)
+        // ==========================================
+        
+        // 1. Enregistrement des commandes disponibles pour le GM
+        gamemaster.register("sidequest-uplink", "Sidequest: Uplink", [
+            { id: "skip_phase", label: "⏩ Force Finish Task" },
+            { id: "add_points", label: "💰 +1 Point" },
+            { id: "remove_points", label: "💸 -1 Point" },
+            { id: "reset", label: "🔄 Reset Game" }
+        ]);
+
+        // 2. Gestion des feedbacks de connexion
+        gamemaster.onConnect(() => addLog("CONNEXION SECURISEE BACKOFFICE ETABLIE."));
+        gamemaster.onDisconnect(() => addLog("ATTENTION: PERTE DE SIGNAL BACKOFFICE."));
+
+        // 3. Gestion des commandes reçues
+        gamemaster.onCommand(({ action, payload }) => {
+            console.log("GM Command:", action);
+
+            // --- FONCTION 1: SKIP ---
+            if (action === "skip_phase") {
+                addLog(">> OVERRIDE: SAUT DE PHASE FORCÉ PAR GM");
+                finishPackage(); // On force la fin de la tache en cours
+            }
+
+            // --- FONCTION 2: ADD POINTS ---
+            if (action === "add_points") {
+                totalSent++;
+                totalSentDisplay.innerText = totalSent;
+                addLog(">> BONUS: RESSOURCE AJOUTÉE PAR GM");
+                syncState();
+            }
+
+            // --- FONCTION 3: REMOVE POINTS ---
+            if (action === "remove_points") {
+                if(totalSent > 0) totalSent--;
+                totalSentDisplay.innerText = totalSent;
+                addLog(">> MALUS: RESSOURCE SUPPRIMÉE PAR GM");
+                syncState();
+            }
+
+            if (action === "reset") {
+                location.reload();
+            }
+        });
+
+        // Fonction pour dire au backoffice où on en est
+        function syncState() {
+            gamemaster.updateState({
+                score: totalSent,
+                phase: currentPhase,
+                in_progress: true
+            });
+        }
+
+        // ==========================================
+        // LOGIQUE DU JEU (Originale)
+        // ==========================================
+
         const CONFIG = {
-            apiUrl: "http://localhost:3000/api/escape", 
-            
-            phase1Clicks: 10,     
-            phase2Targets: 6,    
-            phase3CodeLength: 4,  
-            phase3Time: 5000,   
-            phase4Pairs: 4,
-            phase6Rounds: 3,  
-            phase6Speed: 3,   
-            
-            delayTime: 1500
+            phase1Clicks: 10, phase2Targets: 6, phase3CodeLength: 4, phase3Time: 5000,
+            phase4Pairs: 4, phase6Rounds: 3, phase6Speed: 3, delayTime: 1500
         };
 
-        /* --- STATE --- */
         let totalSent = 0;
         let currentTaskMax = 10;
         let currentTaskProgress = 0;
         let currentPhase = 0;
-        let phaseQueue = []; 
-        let lastPhasePlayed = 0; 
-        
-        let captchaInterval;
-        let skillFrame; 
+        let phaseQueue = [];
+        let lastPhasePlayed = 0;
+        let captchaInterval, skillFrame;
 
-        /* --- DOM ELEMENTS --- */
         const gameArea = document.getElementById('game-area');
         const uploadBar = document.getElementById('current-upload-bar');
         const percentText = document.getElementById('package-percent');
@@ -268,10 +180,11 @@
         const logArea = document.getElementById('log-area');
 
         // Start
-        document.getElementById('start-btn').addEventListener('click', () => { selectNextPhase(); });
+        document.getElementById('start-btn').addEventListener('click', () => { 
+            gamemaster.sendEvent("game_started");
+            selectNextPhase(); 
+        });
 
-        /* --- CORE FUNCTIONS --- */
-        
         function updateTaskProgress(val, max) {
             currentTaskProgress = val;
             currentTaskMax = max;
@@ -282,7 +195,7 @@
         }
 
         function finishPackage() {
-            clearInterval(captchaInterval); 
+            clearInterval(captchaInterval);
             cancelAnimationFrame(skillFrame);
 
             gameArea.innerHTML = `
@@ -291,24 +204,22 @@
                     <div style="color:#fff;">TRANSFERT RESSOURCE >> JOUEUR</div>
                 </div>
             `;
-            sendResourceApi();
+            
+            // Logique de victoire
             totalSent++;
             totalSentDisplay.innerText = totalSent;
+            
+            // Envoyer l'info au backoffice
+            gamemaster.sendEvent("resource_transferred", { total: totalSent });
+            syncState();
+
+            addLog("TRANSFERT REUSSI. PAQUET ENVOYÉ.");
 
             setTimeout(() => {
                 uploadBar.style.width = "0%";
                 percentText.innerText = "0%";
                 selectNextPhase();
             }, CONFIG.delayTime);
-        }
-
-        function sendResourceApi() {
-            addLog("API : Envoi ressource...");
-            fetch(CONFIG.apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: "add_resource", amount: 1 }) 
-            }).catch(err => console.log("API Error", err));
         }
 
         function addLog(msg) {
@@ -371,7 +282,6 @@
             const info = document.createElement('div');
             info.style.position = 'absolute'; info.style.top = '10px'; info.style.color = 'var(--upload-color)'; info.innerText = "COLLECTE...";
             gameArea.appendChild(info);
-
             function spawn() {
                 if (currentTaskProgress >= CONFIG.phase2Targets) return;
                 const node = document.createElement('div');
@@ -395,40 +305,19 @@
             addLog("TÂCHE : Saisie Captcha Rapide");
             updateTaskProgress(0, 1);
             let seq = "", input = "", timeLeft = CONFIG.phase3Time;
-
             const container = document.createElement('div');
             container.className = 'terminal-container';
-            container.innerHTML = `
-                <div class="captcha-box">
-                    <div style="font-size:1rem; opacity:0.8;">CODE DE SÉCURITÉ</div>
-                    <div class="sequence-display" id="captcha-code">----</div>
-                    <div class="timer-track"><div class="timer-fill" id="captcha-timer"></div></div>
-                </div>
-                <div id="user-input" style="color:var(--upload-color); font-size:2rem; margin-bottom:10px;">> _</div>
-            `;
-            const keypad = document.createElement('div');
-            keypad.className = 'keypad';
+            container.innerHTML = `<div class="captcha-box"><div style="font-size:1rem; opacity:0.8;">CODE DE SÉCURITÉ</div><div class="sequence-display" id="captcha-code">----</div><div class="timer-track"><div class="timer-fill" id="captcha-timer"></div></div></div><div id="user-input" style="color:var(--upload-color); font-size:2rem; margin-bottom:10px;">> _</div>`;
+            const keypad = document.createElement('div'); keypad.className = 'keypad';
             ['0', '1', '<'].forEach(key => {
-                const btn = document.createElement('button');
-                btn.className = 'key-btn' + (key === '<' ? ' key-back' : '');
-                btn.innerText = key;
-                btn.onclick = () => handleInput(key);
-                keypad.appendChild(btn);
+                const btn = document.createElement('button'); btn.className = 'key-btn' + (key === '<' ? ' key-back' : ''); btn.innerText = key; btn.onclick = () => handleInput(key); keypad.appendChild(btn);
             });
             container.appendChild(keypad);
             gameArea.appendChild(container);
-
             const displayEl = document.getElementById('captcha-code');
             const timerEl = document.getElementById('captcha-timer');
             const inputEl = document.getElementById('user-input');
-
-            function generateCode() {
-                seq = "";
-                for(let i=0; i<CONFIG.phase3CodeLength; i++) seq += Math.floor(Math.random() * 2);
-                displayEl.innerText = seq.split('').join(' ');
-                input = ""; inputEl.innerText = "> _"; timeLeft = CONFIG.phase3Time;
-            }
-
+            function generateCode() { seq = ""; for(let i=0; i<CONFIG.phase3CodeLength; i++) seq += Math.floor(Math.random() * 2); displayEl.innerText = seq.split('').join(' '); input = ""; inputEl.innerText = "> _"; timeLeft = CONFIG.phase3Time; }
             function handleInput(key) {
                 if(key === '<') input = input.slice(0, -1);
                 else if(input.length < seq.length) input += key;
@@ -438,16 +327,10 @@
                     else { inputEl.style.color = "red"; setTimeout(() => inputEl.style.color = "var(--upload-color)", 200); input = ""; inputEl.innerText = "> _"; }
                 }
             }
-
             generateCode();
             captchaInterval = setInterval(() => {
-                timeLeft -= 50; 
-                timerEl.style.width = (timeLeft / CONFIG.phase3Time) * 100 + "%";
-                if(timeLeft <= 0) {
-                    inputEl.innerText = "EXPIRED"; inputEl.style.color = "red"; 
-                    setTimeout(() => inputEl.style.color = "var(--upload-color)", 200);
-                    generateCode();
-                }
+                timeLeft -= 50; timerEl.style.width = (timeLeft / CONFIG.phase3Time) * 100 + "%";
+                if(timeLeft <= 0) { inputEl.innerText = "EXPIRED"; inputEl.style.color = "red"; setTimeout(() => inputEl.style.color = "var(--upload-color)", 200); generateCode(); }
             }, 50);
         }
 
@@ -455,14 +338,8 @@
         function initWires() {
             addLog("TÂCHE : Connecter les formes");
             updateTaskProgress(0, CONFIG.phase4Pairs);
-
             const title = document.createElement('div'); title.className = 'tutorial-text'; title.innerText = "RELIER LES PAIRES"; gameArea.appendChild(title);
-            
-            // NEW GHOST ANIMATION (Green line, positioned over top-left dot)
-            const ghost = document.createElement('div'); ghost.className = 'ghost-demo';
-            ghost.innerHTML = `<div class="ghost-dot-start"></div><div class="ghost-line"></div><div class="ghost-hand">👆</div>`;
-            gameArea.appendChild(ghost);
-
+            const ghost = document.createElement('div'); ghost.className = 'ghost-demo'; ghost.innerHTML = `<div class="ghost-dot-start"></div><div class="ghost-line"></div><div class="ghost-hand">👆</div>`; gameArea.appendChild(ghost);
             const svgNS = "http://www.w3.org/2000/svg";
             const svg = document.createElementNS(svgNS, "svg"); svg.id = "svg-canvas"; gameArea.appendChild(svg);
             let dragLine = null, startDot = null;
@@ -471,7 +348,6 @@
             let rightIdx = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
             const leftCol = document.createElement('div'); leftCol.className = 'wire-col'; leftCol.style.left = "10%";
             const rightCol = document.createElement('div'); rightCol.className = 'wire-col'; rightCol.style.right = "10%";
-
             function createDot(idx, side) {
                 const dot = document.createElement('div'); dot.className = 'wire-dot'; dot.innerText = shapes[idx]; dot.dataset.id = idx; dot.dataset.side = side;
                 dot.addEventListener('mousedown', (e) => {
@@ -488,14 +364,7 @@
             }
             leftIdx.forEach(n => leftCol.appendChild(createDot(n, 'left'))); rightIdx.forEach(n => rightCol.appendChild(createDot(n, 'right')));
             gameArea.appendChild(leftCol); gameArea.appendChild(rightCol);
-
-            const moveHandler = (e) => {
-                if (dragLine) {
-                    const svgRect = svg.getBoundingClientRect();
-                    dragLine.setAttribute("x2", e.clientX - svgRect.left);
-                    dragLine.setAttribute("y2", e.clientY - svgRect.top);
-                }
-            };
+            const moveHandler = (e) => { if (dragLine) { const svgRect = svg.getBoundingClientRect(); dragLine.setAttribute("x2", e.clientX - svgRect.left); dragLine.setAttribute("y2", e.clientY - svgRect.top); } };
             const upHandler = (e) => {
                 if (dragLine) {
                     const el = document.elementFromPoint(e.clientX, e.clientY);
@@ -503,8 +372,7 @@
                         const rect = el.getBoundingClientRect(); const svgRect = svg.getBoundingClientRect();
                         dragLine.setAttribute("x2", rect.left + rect.width/2 - svgRect.left); dragLine.setAttribute("y2", rect.top + rect.height/2 - svgRect.top);
                         startDot.dataset.connected = "true"; el.dataset.connected = "true";
-                        startDot.style.background = "var(--main-green)"; startDot.style.color = "black";
-                        el.style.background = "var(--main-green)"; el.style.color = "black";
+                        startDot.style.background = "var(--main-green)"; startDot.style.color = "black"; el.style.background = "var(--main-green)"; el.style.color = "black";
                         updateTaskProgress(currentTaskProgress + 1, CONFIG.phase4Pairs);
                         dragLine = null; startDot = null; return;
                     }
@@ -535,67 +403,27 @@
             render(); gameArea.appendChild(grid);
         }
 
-        /* --- PHASE 6: SKILL CHECK (Dead by Daylight Style + REVERSE LOGIC) --- */
+        /* --- PHASE 6: SKILL CHECK --- */
         function initSkillCheck() {
-            addLog("TÂCHE : Calibrage rotatif");
-            updateTaskProgress(0, CONFIG.phase6Rounds);
-
+            addLog("TÂCHE : Calibrage rotatif"); updateTaskProgress(0, CONFIG.phase6Rounds);
             const container = document.createElement('div'); container.className = 'skill-container';
-            const circle = document.createElement('div'); circle.className = 'skill-circle'; container.appendChild(circle);
-            const zone = document.createElement('div'); zone.className = 'skill-zone'; container.appendChild(zone);
-            const needle = document.createElement('div'); needle.className = 'skill-needle'; container.appendChild(needle);
-            const btn = document.createElement('button'); btn.className = 'skill-btn'; btn.innerText = "STOP"; container.appendChild(btn);
-
+            container.innerHTML = `<div class="skill-circle"></div><div class="skill-zone"></div><div class="skill-needle"></div><button class="skill-btn">STOP</button>`;
+            const zone = container.querySelector('.skill-zone'); const needle = container.querySelector('.skill-needle'); const btn = container.querySelector('.skill-btn');
             gameArea.appendChild(container);
-
-            let angle = 0;
-            let speed = CONFIG.phase6Speed;
-            let direction = 1; // 1 = clockwise, -1 = counter-clockwise
-            let targetStart = 0;
-            let targetWidth = 45; 
-
-            function resetZone() {
-                targetStart = Math.floor(Math.random() * 300) + 15;
-                const targetEnd = targetStart + targetWidth;
-                zone.style.background = `conic-gradient(transparent ${targetStart}deg, #888 ${targetStart}deg, white ${targetEnd}deg, transparent ${targetEnd}deg)`;
-            }
-
-            function loop() {
-                // Apply direction to speed
-                angle += speed * direction;
-                
-                // Wrap logic for both directions
-                if (angle >= 360) angle = 0;
-                if (angle < 0) angle = 360;
-
-                needle.style.transform = `rotate(${angle}deg)`;
-                skillFrame = requestAnimationFrame(loop);
-            }
-
+            let angle = 0, speed = CONFIG.phase6Speed, direction = 1, targetStart = 0, targetWidth = 45;
+            function resetZone() { targetStart = Math.floor(Math.random() * 300) + 15; const targetEnd = targetStart + targetWidth; zone.style.background = `conic-gradient(transparent ${targetStart}deg, #888 ${targetStart}deg, white ${targetEnd}deg, transparent ${targetEnd}deg)`; }
+            function loop() { angle += speed * direction; if (angle >= 360) angle = 0; if (angle < 0) angle = 360; needle.style.transform = `rotate(${angle}deg)`; skillFrame = requestAnimationFrame(loop); }
             btn.onmousedown = () => {
-                // CSS rotation is 0 at top. Conic gradient is 0 at top.
-                // However, negative angles need normalization for comparison
-                let normAngle = angle;
-                if (normAngle < 0) normAngle += 360;
-
+                let normAngle = angle; if (normAngle < 0) normAngle += 360;
                 let hit = (normAngle >= targetStart && normAngle <= (targetStart + targetWidth));
-
                 if (hit) {
                     updateTaskProgress(currentTaskProgress + 1, CONFIG.phase6Rounds);
-                    if (currentTaskProgress < CONFIG.phase6Rounds) {
-                        resetZone();
-                        speed += 1; 
-                        direction *= -1; // SWAP DIRECTION ON SUCCESS
-                    }
+                    if (currentTaskProgress < CONFIG.phase6Rounds) { resetZone(); speed += 1; direction *= -1; }
                 } else {
-                    container.classList.add('fail-anim');
-                    setTimeout(() => container.classList.remove('fail-anim'), 500);
-                    speed = CONFIG.phase6Speed; 
+                    container.classList.add('fail-anim'); setTimeout(() => container.classList.remove('fail-anim'), 500); speed = CONFIG.phase6Speed;
                 }
             };
-
-            resetZone();
-            loop();
+            resetZone(); loop();
         }
 
     </script>
