@@ -1,19 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { useGamemaster, registerCommandHandler, unregisterCommandHandler } from '../../context/GamemasterContext';
 import './Game.css';
-
-// Declare gamemaster as global
-declare global {
-  interface Window {
-    gamemaster: {
-      register: (gameId: string, name: string, availableActions: Array<{ id: string; label: string; params?: string[] }>) => void;
-      onCommand: (callback: (data: { action: string; payload?: Record<string, unknown> }) => void) => void;
-      updateState: (state: Record<string, unknown>) => void;
-      sendEvent: (name: string, data?: Record<string, unknown>) => void;
-      onConnect: (callback: () => void) => void;
-      onDisconnect: (callback: () => void) => void;
-    };
-  }
-}
 
 const CONFIG = {
   phase1Clicks: 10,
@@ -40,6 +27,14 @@ export default function Game() {
   const captchaIntervalRef = useRef<number | null>(null);
   const skillFrameRef = useRef<number | null>(null);
   const gameAreaRef = useRef<HTMLDivElement>(null);
+  const finishPackageRef = useRef<() => void>(() => {});
+
+  const { updateState, sendEvent } = useGamemaster();
+
+  // Update screen state on mount
+  useEffect(() => {
+    updateState({ currentScreen: 'game' });
+  }, [updateState]);
 
   const addLog = (msg: string) => {
     setLogs((prev) => {
@@ -50,13 +45,11 @@ export default function Game() {
   };
 
   const syncState = (score: number, phase: number) => {
-    if (window.gamemaster) {
-      window.gamemaster.updateState({
-        score,
-        phase,
-        in_progress: true,
-      });
-    }
+    updateState({
+      score,
+      phase,
+      in_progress: true,
+    });
   };
 
   const generateQueue = () => {
@@ -87,14 +80,11 @@ export default function Game() {
     setTotalSent((prev) => {
       const newTotal = prev + 1;
 
-      // 5 - Envoyer +1 point au backend
-      if (window.gamemaster) {
-        window.gamemaster.sendEvent('point_earned', {
-          points: 1,
-          totalPoints: newTotal
-        });
-        window.gamemaster.sendEvent('resource_transferred', { total: newTotal });
-      }
+      sendEvent('point_earned', {
+        points: 1,
+        totalPoints: newTotal
+      });
+      sendEvent('resource_transferred', { total: newTotal });
       syncState(newTotal, currentPhase);
       return newTotal;
     });
@@ -107,6 +97,11 @@ export default function Game() {
       selectNextPhase();
     }, CONFIG.delayTime);
   };
+
+  // Keep ref updated
+  useEffect(() => {
+    finishPackageRef.current = finishPackage;
+  });
 
   const updateTaskProgress = (val: number, max: number) => {
     setTaskProgress(val);
@@ -125,58 +120,29 @@ export default function Game() {
     syncState(totalSent, next);
   };
 
-  // Initialize gamemaster
+  // Register command handler for this screen
   useEffect(() => {
-    const initGamemaster = () => {
-      if (window.gamemaster) {
-        window.gamemaster.register('sidequest-uplink', 'Sidequest: Uplink', [
-          { id: 'skip_phase', label: '⏩ Force Finish Task' },
-          { id: 'add_points', label: '💰 +1 Point' },
-          { id: 'remove_points', label: '💸 -1 Point' },
-          { id: 'reset', label: '🔄 Reset Game' },
-        ]);
-
-        window.gamemaster.onConnect(() => addLog('CONNEXION SECURISEE BACKOFFICE ETABLIE.'));
-        window.gamemaster.onDisconnect(() => addLog('ATTENTION: PERTE DE SIGNAL BACKOFFICE.'));
-
-        window.gamemaster.onCommand(({ action }) => {
-          if (action === 'skip_phase') {
-            addLog('>> OVERRIDE: SAUT DE PHASE FORCÉ PAR GM');
-            finishPackage();
-          }
-          if (action === 'add_points') {
-            setTotalSent((prev) => prev + 1);
-            addLog('>> BONUS: RESSOURCE AJOUTÉE PAR GM');
-          }
-          if (action === 'remove_points') {
-            setTotalSent((prev) => (prev > 0 ? prev - 1 : 0));
-            addLog('>> MALUS: RESSOURCE SUPPRIMÉE PAR GM');
-          }
-          if (action === 'reset') {
-            window.location.reload();
-          }
-        });
+    const handleCommand = (action: string) => {
+      if (action === 'skip_phase') {
+        addLog('>> OVERRIDE: SAUT DE PHASE FORCÉ PAR GM');
+        finishPackageRef.current();
+      }
+      if (action === 'add_points') {
+        setTotalSent((prev) => prev + 1);
+        addLog('>> BONUS: RESSOURCE AJOUTÉE PAR GM');
+      }
+      if (action === 'remove_points') {
+        setTotalSent((prev) => (prev > 0 ? prev - 1 : 0));
+        addLog('>> MALUS: RESSOURCE SUPPRIMÉE PAR GM');
       }
     };
 
-    // Try to init, or wait for scripts to load
-    if (window.gamemaster) {
-      initGamemaster();
-    } else {
-      const interval = setInterval(() => {
-        if (window.gamemaster) {
-          initGamemaster();
-          clearInterval(interval);
-        }
-      }, 100);
-      return () => clearInterval(interval);
-    }
+    registerCommandHandler('game', handleCommand);
+    return () => unregisterCommandHandler('game');
   }, []);
 
   const handleStartClick = () => {
-    if (window.gamemaster) {
-      window.gamemaster.sendEvent('game_started');
-    }
+    sendEvent('game_started');
     setGameStarted(true);
     selectNextPhase();
   };

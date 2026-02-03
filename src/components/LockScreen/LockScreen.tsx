@@ -1,125 +1,72 @@
-import { useState, useEffect, FormEvent, KeyboardEvent } from "react";
+import { useState, useEffect } from "react";
+import type { FormEvent, KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  useGamemaster,
+  registerCommandHandler,
+  unregisterCommandHandler,
+} from "../../context/GamemasterContext";
 import "./LockScreen.css";
 
-// Declare gamemaster as global
-declare global {
-  interface Window {
-    gamemaster: {
-      register: (gameId: string, name: string, availableActions: Array<{ id: string; label: string; params?: string[] }>) => void;
-      onCommand: (callback: (data: { action: string; payload?: Record<string, unknown> }) => void) => void;
-      updateState: (state: Record<string, unknown>) => void;
-      sendEvent: (name: string, data?: Record<string, unknown>) => void;
-      onConnect: (callback: () => void) => void;
-      onDisconnect: (callback: () => void) => void;
-    };
-  }
-}
-
-const CORRECT_PASSWORD = "124390L";
+const CORRECT_PASSWORD = "admin";
 
 export default function LockScreen() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
   const [shake, setShake] = useState(false);
-  const [startScreen, setStartScreen] = useState(false); // 1 - Écran de chargement avant affichage
-  const [isTypingAnimation, setIsTypingAnimation] = useState(false); // 3 - Animation de saisie du back
+  const [isTypingAnimation, setIsTypingAnimation] = useState(false);
   const navigate = useNavigate();
+  const { state, updateState, sendEvent } = useGamemaster();
 
-  // Initialize gamemaster
+  // Update screen state on mount
   useEffect(() => {
-    const initGamemaster = () => {
-      if (window.gamemaster) {
-        window.gamemaster.register("sidequest-computer", "Sidequest: Computer", [
-          { id: "start_screen", label: "🚀 Activer l'écran (ARIA méchante)" },
-          { id: "set_code", label: "🔑 Entrer un code", params: ["code"] },
-          { id: "reset", label: "🔄 Reset" },
-        ]);
+    updateState({ currentScreen: "lockscreen" });
+  }, [updateState]);
 
-        window.gamemaster.onConnect(() => {
-          console.log("Computer: Connecté au backoffice");
-          syncState();
-        });
+  // Register command handler for this screen
+  useEffect(() => {
+    const handleCommand = (
+      action: string,
+      payload: Record<string, unknown>,
+    ) => {
+      if (action === "start_screen") {
+        updateState({ startScreen: true });
+      }
 
-        window.gamemaster.onDisconnect(() => {
-          console.log("Computer: Déconnecté du backoffice");
-        });
+      if (action === "set_code" && payload?.code) {
+        const codeToType = String(payload.code);
+        setPassword("");
+        setIsTypingAnimation(true);
 
-        window.gamemaster.onCommand(({ action, payload }) => {
-          console.log("GM Command:", action, payload);
-
-          // 1 - ARIA devient méchante, on active l'écran
-          if (action === "start_screen") {
-            setStartScreen(true);
-            syncState(true);
+        let index = 0;
+        const typeInterval = setInterval(() => {
+          if (index < codeToType.length) {
+            setPassword((prev) => prev + codeToType[index]);
+            index++;
+          } else {
+            clearInterval(typeInterval);
+            setIsTypingAnimation(false);
           }
+        }, 150);
+      }
 
-          // 3 - Le back envoie un code à afficher avec animation
-          if (action === "set_code" && payload?.code) {
-            const codeToType = String(payload.code);
-            setPassword("");
-            setIsTypingAnimation(true);
-
-            // Animation de frappe caractère par caractère
-            let index = 0;
-            const typeInterval = setInterval(() => {
-              if (index < codeToType.length) {
-                setPassword(prev => prev + codeToType[index]);
-                index++;
-              } else {
-                clearInterval(typeInterval);
-                setIsTypingAnimation(false);
-              }
-            }, 150);
-          }
-
-          if (action === "reset") {
-            setPassword("");
-            setError(false);
-            setShake(false);
-            setStartScreen(false);
-            syncState(false);
-          }
-        });
-
-        // Initial state sync
-        syncState();
+      if (action === "reset") {
+        setPassword("");
+        setError(false);
+        setShake(false);
       }
     };
 
-    const syncState = (started?: boolean) => {
-      if (window.gamemaster) {
-        window.gamemaster.updateState({
-          startScreen: started !== undefined ? started : startScreen,
-          isPasswordCorrect: false,
-          passwordEntered: password,
-        });
-      }
-    };
+    registerCommandHandler("lockscreen", handleCommand);
+    return () => unregisterCommandHandler("lockscreen");
+  }, [updateState]);
 
-    if (window.gamemaster) {
-      initGamemaster();
-    } else {
-      const interval = setInterval(() => {
-        if (window.gamemaster) {
-          initGamemaster();
-          clearInterval(interval);
-        }
-      }, 100);
-      return () => clearInterval(interval);
-    }
-  }, []);
-
-  // Sync state when password changes
+  // Sync password state
   useEffect(() => {
-    if (window.gamemaster && !isTypingAnimation) {
-      window.gamemaster.updateState({
-        startScreen,
-        isPasswordCorrect: false,
-        passwordEntered: password,
-      });
+    if (!isTypingAnimation) {
+      updateState({ passwordEntered: password });
     }
-  }, [password, startScreen]);
+  }, [password, isTypingAnimation, updateState]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -133,33 +80,20 @@ export default function LockScreen() {
   };
 
   const validatePassword = () => {
-    // 4 - Envoyer le code exact au back
-    if (window.gamemaster) {
-      window.gamemaster.sendEvent("password_attempt", {
-        passwordEntered: password,
-        isCorrect: password === CORRECT_PASSWORD
-      });
-    }
+    sendEvent("password_attempt", {
+      passwordEntered: password,
+      isCorrect: password === CORRECT_PASSWORD,
+    });
 
     if (password === CORRECT_PASSWORD) {
-      // 2 - Code validé, envoyer l'info au back
-      if (window.gamemaster) {
-        window.gamemaster.sendEvent("password_correct", { isPasswordCorrect: true });
-        window.gamemaster.updateState({
-          startScreen,
-          isPasswordCorrect: true,
-          passwordEntered: password,
-        });
-      }
+      sendEvent("password_correct", { isPasswordCorrect: true });
+      updateState({ isPasswordCorrect: true, passwordEntered: password });
       navigate("/home");
     } else {
-      // 4 - Code incorrect, envoyer au back
-      if (window.gamemaster) {
-        window.gamemaster.sendEvent("password_incorrect", {
-          isPasswordCorrect: false,
-          passwordEntered: password
-        });
-      }
+      sendEvent("password_incorrect", {
+        isPasswordCorrect: false,
+        passwordEntered: password,
+      });
 
       setError(true);
       setShake(true);
@@ -175,8 +109,8 @@ export default function LockScreen() {
     }
   };
 
-  // 1 - Si startScreen est false, afficher écran noir
-  if (!startScreen) {
+  // If startScreen is false, show black screen
+  if (!state.startScreen) {
     return (
       <div className="lock-screen loading-screen">
         {/* Écran totalement noir */}
@@ -226,12 +160,16 @@ export default function LockScreen() {
         <h1 className="lock-title">SYSTÈME VERROUILLÉ</h1>
 
         <form onSubmit={handleSubmit} className="lock-form">
-          <div className={`input-container ${shake ? "shake" : ""} ${isTypingAnimation ? "typing" : ""}`}>
+          <div
+            className={`input-container ${shake ? "shake" : ""} ${isTypingAnimation ? "typing" : ""}`}
+          >
             <span className="input-prefix">&gt;</span>
             <input
               type="password"
               value={password}
-              onChange={(e) => !isTypingAnimation && setPassword(e.target.value)}
+              onChange={(e) =>
+                !isTypingAnimation && setPassword(e.target.value)
+              }
               onKeyDown={handleKeyDown}
               placeholder="ENTREZ LE CODE D'ACCÈS"
               className="lock-input"
@@ -240,7 +178,11 @@ export default function LockScreen() {
             />
           </div>
 
-          <button type="submit" className="lock-button" disabled={isTypingAnimation}>
+          <button
+            type="submit"
+            className="lock-button"
+            disabled={isTypingAnimation}
+          >
             [VALIDER]
           </button>
         </form>
