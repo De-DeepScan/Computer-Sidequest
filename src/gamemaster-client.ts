@@ -129,3 +129,11 @@ export const gamemaster = {
 
   socket,
 };
+
+// Expose on window for global access (used by GamemasterContext pattern)
+declare global {
+  interface Window {
+    gamemaster: typeof gamemaster;
+  }
+}
+window.gamemaster = gamemaster;
