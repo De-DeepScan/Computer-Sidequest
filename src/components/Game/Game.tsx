@@ -141,11 +141,13 @@ export default function Game() {
     return () => unregisterCommandHandler('game');
   }, []);
 
-  const handleStartClick = () => {
+  // Auto-start the game on mount
+  useEffect(() => {
     sendEvent('game_started');
     setGameStarted(true);
     selectNextPhase();
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const pct = taskMax > 0 ? Math.floor((taskProgress / taskMax) * 100) : 0;
 
