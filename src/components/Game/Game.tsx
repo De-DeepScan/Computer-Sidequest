@@ -209,11 +209,6 @@ export default function Game() {
             </div>
           )}
 
-          {!gameStarted && !showSendingOverlay && (
-            <div className="btn-primary" onClick={handleStartClick}>
-              INITIALISER LE TRANSFERT
-            </div>
-          )}
 
           {gameStarted && !showSendingOverlay && currentPhase === 1 && (
             <Phase1Clicker
