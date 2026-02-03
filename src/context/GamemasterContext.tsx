@@ -80,13 +80,15 @@ export function GamemasterProvider({ children }: { children: ReactNode }) {
         });
 
         window.gamemaster.onCommand(({ action, payload }) => {
-          console.log('GM Command:', action, payload);
+          console.log('GM Command received:', action, payload);
+          console.log('Current screen:', currentScreenRef.current);
+          console.log('Registered handlers:', Array.from(commandHandlers.keys()));
 
-          // Route command to appropriate handler based on current screen (using ref for current value)
-          const currentScreenHandler = commandHandlers.get(currentScreenRef.current);
-          if (currentScreenHandler) {
-            currentScreenHandler(action, payload || {});
-          }
+          // Send command to ALL registered handlers (let each handler decide if it cares)
+          commandHandlers.forEach((handler, screen) => {
+            console.log('Calling handler for screen:', screen);
+            handler(action, payload || {});
+          });
 
           // Handle global reset
           if (action === 'reset') {
@@ -121,7 +123,13 @@ export function GamemasterProvider({ children }: { children: ReactNode }) {
   // Sync state with backoffice
   useEffect(() => {
     if (window.gamemaster && registeredRef.current) {
-      window.gamemaster.updateState(state);
+      // Format state for backoffice display
+      const formattedState = {
+        ...state,
+        passwordEntered: state.passwordEntered || '(vide)',
+        codeStatus: state.isPasswordCorrect ? 'Correct' : (state.passwordEntered ? 'En saisie' : 'En attente'),
+      };
+      window.gamemaster.updateState(formattedState);
     }
   }, [state]);
 
