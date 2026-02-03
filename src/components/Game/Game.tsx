@@ -36,6 +36,13 @@ export default function Game() {
     updateState({ currentScreen: 'game' });
   }, [updateState]);
 
+  // Sync state with gamemaster when score or phase changes
+  useEffect(() => {
+    if (gameStarted) {
+      syncState(totalSent, currentPhase);
+    }
+  }, [totalSent, currentPhase, gameStarted]);
+
   const addLog = (msg: string) => {
     setLogs((prev) => {
       const newLogs = [...prev, msg];
