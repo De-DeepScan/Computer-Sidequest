@@ -140,9 +140,37 @@ export function GamemasterProvider({ children }: { children: ReactNode }) {
   // Sync state with backoffice
   useEffect(() => {
     if (window.gamemaster && registeredRef.current) {
+      // Calculate explicit workflowStep
+      let workflowStep: string;
+      if (state.currentScreen === "lockscreen" && !state.startScreen) {
+        workflowStep = "reset";
+      } else if (state.currentScreen === "lockscreen" && !state.isPasswordCorrect) {
+        workflowStep = "locked";
+      } else if (state.currentScreen === "home") {
+        workflowStep = "unlocked";
+      } else if (state.currentScreen === "game" && state.in_progress) {
+        workflowStep = "game_running";
+      } else {
+        workflowStep = "unknown";
+      }
+
+      // Calculate displayScreen for UI display
+      let displayScreen: string;
+      if (state.currentScreen === "lockscreen") {
+        displayScreen = state.startScreen ? "Écran de connexion" : "Écran noir";
+      } else if (state.currentScreen === "home") {
+        displayScreen = "Écran d'accueil";
+      } else if (state.currentScreen === "game") {
+        displayScreen = `Jeu - Phase ${state.phase}/6`;
+      } else {
+        displayScreen = "État inconnu";
+      }
+
       // Format state for backoffice display
       const formattedState = {
         ...state,
+        workflowStep,
+        displayScreen,
         passwordEntered: state.passwordEntered || "(vide)",
         codeStatus: state.isPasswordCorrect
           ? "Correct"

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   useGamemaster,
@@ -14,13 +14,35 @@ export default function LockScreen() {
   const [error, setError] = useState(false);
   const [shake, setShake] = useState(false);
   const [isTypingAnimation, setIsTypingAnimation] = useState(false);
+
+  // Refs for typing animation to avoid closure stale issues
+  const typeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const typeIndexRef = useRef(0);
+
   const navigate = useNavigate();
   const { state, updateState, sendEvent } = useGamemaster();
+
+  // Cleanup function for typing animation
+  const stopTypingAnimation = useCallback(() => {
+    if (typeTimeoutRef.current) {
+      clearTimeout(typeTimeoutRef.current);
+      typeTimeoutRef.current = null;
+    }
+    typeIndexRef.current = 0;
+    setIsTypingAnimation(false);
+  }, []);
 
   // Update screen state on mount
   useEffect(() => {
     updateState({ currentScreen: "lockscreen" });
   }, [updateState]);
+
+  // Cleanup typing animation on unmount
+  useEffect(() => {
+    return () => {
+      stopTypingAnimation();
+    };
+  }, [stopTypingAnimation]);
 
   // Register command handler for this screen
   useEffect(() => {
@@ -33,23 +55,39 @@ export default function LockScreen() {
       }
 
       if (action === "enter_solution") {
+        // Stop any previous animation
+        stopTypingAnimation();
+
         const solution = CORRECT_PASSWORD;
+
+        // Reset state properly
         setPassword("");
+        typeIndexRef.current = 0;
         setIsTypingAnimation(true);
 
-        let index = 0;
-        const typeInterval = setInterval(() => {
-          if (index < solution.length) {
-            setPassword((prev) => prev + solution[index]);
-            index++;
+        // Use recursive setTimeout instead of setInterval to avoid closure issues
+        const typeNextChar = () => {
+          const currentIndex = typeIndexRef.current;
+
+          if (currentIndex < solution.length) {
+            // Use index from ref (always up to date)
+            setPassword((prev) => prev + solution[currentIndex]);
+            typeIndexRef.current++;
+
+            // Schedule next character
+            typeTimeoutRef.current = setTimeout(typeNextChar, 150);
           } else {
-            clearInterval(typeInterval);
-            setIsTypingAnimation(false);
+            // Animation complete
+            stopTypingAnimation();
           }
-        }, 150);
+        };
+
+        // Start animation after a small delay to ensure setPassword("") is applied
+        typeTimeoutRef.current = setTimeout(typeNextChar, 150);
       }
 
       if (action === "reset") {
+        stopTypingAnimation();
         setPassword("");
         setError(false);
         setShake(false);
@@ -57,8 +95,11 @@ export default function LockScreen() {
     };
 
     registerCommandHandler("lockscreen", handleCommand);
-    return () => unregisterCommandHandler("lockscreen");
-  }, [updateState]);
+    return () => {
+      unregisterCommandHandler("lockscreen");
+      stopTypingAnimation();
+    };
+  }, [updateState, stopTypingAnimation]);
 
   const validatePassword = useCallback(() => {
     const isCorrect = password.toLowerCase() === CORRECT_PASSWORD.toLowerCase();
