@@ -45,3 +45,6 @@ export const gamemaster = {
 
   socket,
 };
+
+// Exposer gamemaster sur window pour les composants
+(window as any).gamemaster = gamemaster;
