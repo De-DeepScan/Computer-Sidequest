@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import type { FormEvent, KeyboardEvent } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   useGamemaster,
@@ -33,15 +32,15 @@ export default function LockScreen() {
         updateState({ startScreen: true });
       }
 
-      if (action === "set_code" && payload?.code) {
-        const codeToType = String(payload.code);
+      if (action === "enter_solution") {
+        const solution = CORRECT_PASSWORD;
         setPassword("");
         setIsTypingAnimation(true);
 
         let index = 0;
         const typeInterval = setInterval(() => {
-          if (index < codeToType.length) {
-            setPassword((prev) => prev + codeToType[index]);
+          if (index < solution.length) {
+            setPassword((prev) => prev + solution[index]);
             index++;
           } else {
             clearInterval(typeInterval);
@@ -61,31 +60,15 @@ export default function LockScreen() {
     return () => unregisterCommandHandler("lockscreen");
   }, [updateState]);
 
-  // Sync password state
-  useEffect(() => {
-    if (!isTypingAnimation) {
-      updateState({ passwordEntered: password });
-    }
-  }, [password, isTypingAnimation, updateState]);
+  const validatePassword = useCallback(() => {
+    const isCorrect = password.toLowerCase() === CORRECT_PASSWORD.toLowerCase();
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    validatePassword();
-  };
-
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      validatePassword();
-    }
-  };
-
-  const validatePassword = () => {
     sendEvent("password_attempt", {
       passwordEntered: password,
-      isCorrect: password === CORRECT_PASSWORD,
+      isCorrect,
     });
 
-    if (password === CORRECT_PASSWORD) {
+    if (isCorrect) {
       sendEvent("password_correct", { isPasswordCorrect: true });
       updateState({ isPasswordCorrect: true, passwordEntered: password });
       navigate("/home");
@@ -107,7 +90,19 @@ export default function LockScreen() {
         setError(false);
       }, 3000);
     }
-  };
+  }, [password, sendEvent, updateState, navigate]);
+
+  // Sync password state and auto-validate when all boxes are filled
+  useEffect(() => {
+    if (!isTypingAnimation) {
+      updateState({ passwordEntered: password });
+
+      // Auto-validate when password length matches
+      if (password.length === CORRECT_PASSWORD.length) {
+        validatePassword();
+      }
+    }
+  }, [password, isTypingAnimation, updateState, validatePassword]);
 
   // If startScreen is false, show black screen
   if (!state.startScreen) {
@@ -159,33 +154,36 @@ export default function LockScreen() {
 
         <h1 className="lock-title">SYSTÈME VERROUILLÉ</h1>
 
-        <form onSubmit={handleSubmit} className="lock-form">
-          <div
-            className={`input-container ${shake ? "shake" : ""} ${isTypingAnimation ? "typing" : ""}`}
-          >
-            <span className="input-prefix">&gt;</span>
+        <div className="lock-form">
+          <div className="code-input-wrapper">
             <input
-              type="password"
+              type="text"
               value={password}
-              onChange={(e) =>
-                !isTypingAnimation && setPassword(e.target.value)
-              }
-              onKeyDown={handleKeyDown}
-              placeholder="ENTREZ LE CODE D'ACCÈS"
-              className="lock-input"
+              onChange={(e) => {
+                if (!isTypingAnimation && e.target.value.length <= CORRECT_PASSWORD.length) {
+                  setPassword(e.target.value);
+                }
+              }}
+              className="hidden-input"
               autoFocus
               disabled={isTypingAnimation}
+              maxLength={CORRECT_PASSWORD.length}
             />
+            <div
+              className={`code-boxes ${shake ? "shake" : ""} ${isTypingAnimation ? "typing" : ""}`}
+              onClick={() => {
+                const input = document.querySelector('.hidden-input') as HTMLInputElement;
+                input?.focus();
+              }}
+            >
+              {Array.from({ length: CORRECT_PASSWORD.length }).map((_, index) => (
+                <div key={index} className={`code-box ${password[index] ? "filled" : ""}`}>
+                  {password[index] ? "●" : "_"}
+                </div>
+              ))}
+            </div>
           </div>
-
-          <button
-            type="submit"
-            className="lock-button"
-            disabled={isTypingAnimation}
-          >
-            [VALIDER]
-          </button>
-        </form>
+        </div>
 
         {error && (
           <div className="error-message">

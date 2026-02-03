@@ -62,7 +62,7 @@ export function GamemasterProvider({ children }: { children: ReactNode }) {
         window.gamemaster.register('sidequest', 'Sidequest', [
           // LockScreen actions
           { id: 'start_screen', label: '🚀 Activer l\'écran (ARIA méchante)' },
-          { id: 'set_code', label: '🔑 Entrer un code', params: ['code'] },
+          { id: 'enter_solution', label: '🔑 Entrer la solution' },
           // Game actions
           { id: 'skip_phase', label: '⏩ Force Finish Task' },
           { id: 'add_points', label: '💰 +1 Point' },

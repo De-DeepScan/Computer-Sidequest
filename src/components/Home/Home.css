@@ -148,6 +148,133 @@
   }
 }
 
+/* === TERMINAL WINDOWS PHASE === */
+
+.terminals-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+.terminal-window {
+  position: absolute;
+  width: 240px;
+  background: rgba(0, 0, 0, 0.95);
+  border: var(--border-thin) var(--color-primary);
+  box-shadow: var(--shadow-glow-soft);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.05s var(--ease-out);
+}
+
+.terminal-window.visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+/* Countdown overlay on top of terminals */
+.countdown-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.7);
+  animation: overlayAppear 0.5s ease-out;
+}
+
+@keyframes overlayAppear {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(4px);
+  }
+}
+
+.terminal-header-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  background: rgba(0, 255, 255, 0.1);
+  border-bottom: var(--border-thin) var(--color-primary);
+}
+
+.terminal-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.terminal-dot.red {
+  background: #ff5f56;
+  box-shadow: 0 0 5px #ff5f56;
+}
+
+.terminal-dot.yellow {
+  background: #ffbd2e;
+  box-shadow: 0 0 5px #ffbd2e;
+}
+
+.terminal-dot.green {
+  background: #27ca40;
+  box-shadow: 0 0 5px #27ca40;
+}
+
+.terminal-title {
+  margin-left: auto;
+  font-size: 9px;
+  color: var(--color-text-muted);
+  letter-spacing: 0.5px;
+}
+
+.terminal-content {
+  padding: 5px;
+  min-height: 40px;
+}
+
+.terminal-line {
+  font-family: var(--font-primary);
+  font-size: 10px;
+  color: var(--color-primary);
+  margin-bottom: 2px;
+  opacity: 0;
+  animation: lineAppear 0.05s forwards;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@keyframes lineAppear {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Different colors for different line types */
+.terminal-line:nth-child(odd) {
+  color: var(--color-primary);
+}
+
+.terminal-line:nth-child(even) {
+  color: #aaffaa;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .home-container {
@@ -163,5 +290,9 @@
   .home-screen::after {
     width: 300px;
     height: 300px;
+  }
+
+  .terminal-window {
+    width: 250px;
   }
 }

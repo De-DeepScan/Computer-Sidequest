@@ -378,20 +378,55 @@
   display: none !important;
 }
 
+/* Code input wrapper */
+.code-input-wrapper {
+  position: relative;
+}
+
+/* Code boxes for password */
+.code-boxes {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-md);
+  cursor: text;
+}
+
+.code-box {
+  width: 50px;
+  height: 60px;
+  border: var(--border-medium) var(--color-primary);
+  background: rgba(0, 255, 255, 0.02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-2xl);
+  color: var(--color-primary);
+  font-family: var(--font-primary);
+  transition: all var(--duration-fast) var(--ease-default);
+}
+
+.code-box.filled {
+  background: rgba(0, 255, 255, 0.1);
+  box-shadow: var(--shadow-glow-soft);
+}
+
+.hidden-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+}
+
 /* Typing animation from backend */
-.input-container.typing {
+.code-boxes.typing .code-box {
   border-color: var(--color-warning, #ffaa00);
+}
+
+.code-boxes.typing .code-box.filled {
+  background: rgba(255, 170, 0, 0.1);
   box-shadow: 0 0 15px rgba(255, 170, 0, 0.3);
-}
-
-.input-container.typing .lock-input {
   color: var(--color-warning, #ffaa00);
-  animation: typingCursor 0.5s step-end infinite;
-}
-
-@keyframes typingCursor {
-  0%, 100% { border-right: 2px solid var(--color-warning, #ffaa00); }
-  50% { border-right: 2px solid transparent; }
 }
 
 /* Disabled button during typing */
