@@ -139,7 +139,12 @@ export default function Game() {
         finishPackageRef.current();
       }
       if (action === 'add_points') {
-        setTotalSent((prev) => prev + 1);
+        setTotalSent((prev) => {
+          const newTotal = prev + 1;
+          // Send event so Gamemaster can relay to Labyrinth
+          sendEvent('point_earned', { points: 1, totalPoints: newTotal });
+          return newTotal;
+        });
         addLog('>> BONUS: RESSOURCE AJOUTÉE PAR GM');
       }
       if (action === 'remove_points') {
@@ -150,7 +155,7 @@ export default function Game() {
 
     registerCommandHandler('game', handleCommand);
     return () => unregisterCommandHandler('game');
-  }, []);
+  }, [sendEvent]);
 
   // Auto-start the game on mount
   useEffect(() => {
