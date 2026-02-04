@@ -170,7 +170,7 @@ export class GamemasterAudio {
 
   private applyPresetVolume(): void {
     for (const a of this.presetAudios.values()) {
-      a.volume = this.masterVolume;
+      a.volume = Math.min(1, this.iaVolume * this.masterVolume);
     }
   }
 
@@ -283,7 +283,7 @@ export class GamemasterAudio {
       }
 
       const audio = new Audio();
-      audio.volume = this.masterVolume;
+      audio.volume = Math.min(1, this.iaVolume * this.masterVolume);
 
       audio.addEventListener("timeupdate", () => {
         if (!audio.paused && s.connected) {
@@ -373,6 +373,7 @@ export class GamemasterAudio {
     s.on("audio:volume-ia", (data: VolumePayload) => {
       this.iaVolume = data.volume;
       this.log("IA volume:", Math.round(this.iaVolume * 100) + "%");
+      this.applyPresetVolume();
       this.applyTtsVolume();
     });
 
