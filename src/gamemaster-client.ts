@@ -117,8 +117,6 @@ let audioConfig: AudioConfig = {
   debug: false,
 };
 
-let audioUnlocked = false;
-let audioCtx: AudioContext | null = null;
 let masterVolume = 1;
 let iaVolume = 1;
 let ambientVolume = 1;
@@ -132,63 +130,7 @@ let ttsAudio: HTMLAudioElement | null = null;
 // =====================
 
 function audioLog(msg: string, ...args: unknown[]): void {
-  if (audioConfig.debug) {
-    console.log(`[gamemaster:audio] ${msg}`, ...args);
-  }
-}
-
-function doUnlockAudio(): void {
-  if (audioUnlocked || !audioConfig.enabled) return;
-
-  // Create and resume an AudioContext to satisfy browser autoplay policies
-  const AudioContextClass =
-    window.AudioContext ||
-    (window as unknown as { webkitAudioContext: typeof AudioContext })
-      .webkitAudioContext;
-  audioCtx = new AudioContextClass();
-  audioCtx
-    .resume()
-    .then(() => audioCtx?.close())
-    .catch(() => {});
-
-  // Play a silent WAV to fully unlock HTML Audio elements
-  const silent = new Audio();
-  silent.src =
-    "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
-  silent
-    .play()
-    .then(() => {
-      silent.pause();
-      silent.currentTime = 0;
-      silent.src = "";
-    })
-    .catch(() => {});
-
-  audioUnlocked = true;
-  audioLog("Audio unlocked via user interaction");
-
-  socket.emit("register-audio-player", {});
-  removeUnlockListeners();
-}
-
-const unlockEvents = ["click", "touchstart", "keydown"] as const;
-
-function addUnlockListeners(): void {
-  if (typeof window === "undefined") return;
-  for (const event of unlockEvents) {
-    window.addEventListener(event, doUnlockAudio, {
-      once: true,
-      passive: true,
-    });
-  }
-  audioLog("User interaction listeners added");
-}
-
-function removeUnlockListeners(): void {
-  if (typeof window === "undefined") return;
-  for (const event of unlockEvents) {
-    window.removeEventListener(event, doUnlockAudio);
-  }
+  console.log(`[gamemaster:audio] ${msg}`, ...args);
 }
 
 function stopAllAudio(): void {
@@ -247,7 +189,7 @@ function applyAmbientVolume(): void {
 function setupAudioEventListeners(): void {
   // Ambient sounds
   socket.on("audio:play-ambient", (data: PlayAmbientPayload) => {
-    if (!audioUnlocked || !audioConfig.enabled) return;
+    if (!audioConfig.enabled) return;
     const { soundId, audioBase64, mimeType, volume } = data;
     audioLog("Play ambient:", soundId);
 
@@ -288,9 +230,9 @@ function setupAudioEventListeners(): void {
 
   // Presets
   socket.on("audio:play-preset", (data: PlayPresetPayload) => {
-    if (!audioUnlocked || !audioConfig.enabled) return;
-    const { presetIdx, file, audioBase64, mimeType } = data;
-    audioLog("Play preset:", presetIdx, file);
+    if (!audioConfig.enabled) return;
+    const { presetIdx, audioBase64, mimeType } = data;
+    audioLog("Play preset:", presetIdx, data.file);
 
     const existing = presetAudios.get(presetIdx);
     if (existing) {
@@ -331,6 +273,13 @@ function setupAudioEventListeners(): void {
     if (audio) audio.pause();
   });
 
+  socket.on("audio:resume-preset", (data: PausePresetPayload) => {
+    const { presetIdx } = data;
+    audioLog("Resume preset:", presetIdx);
+    const audio = presetAudios.get(presetIdx);
+    if (audio) audio.play().catch((e) => audioLog("Resume error:", e.message));
+  });
+
   socket.on("audio:seek-preset", (data: SeekPresetPayload) => {
     const { presetIdx, currentTime } = data;
     audioLog("Seek preset:", presetIdx, "to", currentTime);
@@ -352,7 +301,7 @@ function setupAudioEventListeners(): void {
 
   // TTS
   socket.on("audio:play-tts", (data: PlayTTSPayload) => {
-    if (!audioUnlocked || !audioConfig.enabled) return;
+    if (!audioConfig.enabled) return;
     const { audioBase64, mimeType } = data;
     audioLog("Play TTS");
 
@@ -405,7 +354,7 @@ socket.on("connect", () => {
       }, 100);
     }
   }
-  if (audioUnlocked && audioConfig.enabled) {
+  if (audioConfig.enabled) {
     socket.emit("register-audio-player", {});
   }
 });
@@ -447,12 +396,7 @@ if (typeof document !== "undefined") {
 
 (function initAudio() {
   if (typeof window === "undefined") return;
-
   setupAudioEventListeners();
-
-  if (audioConfig.autoUnlock) {
-    addUnlockListeners();
-  }
 })();
 
 // =====================
@@ -517,12 +461,12 @@ export const gamemaster = {
 
   // Audio API
   get isAudioReady(): boolean {
-    return audioUnlocked && audioConfig.enabled;
+    return audioConfig.enabled;
   },
 
   get audioStatus(): AudioStatus {
     return {
-      unlocked: audioUnlocked,
+      unlocked: true,
       enabled: audioConfig.enabled,
       masterVolume,
       iaVolume,
@@ -536,24 +480,9 @@ export const gamemaster = {
     audioConfig = { ...audioConfig, ...config };
     console.log("[gamemaster] Audio configured:", audioConfig);
 
-    if (
-      config.enabled &&
-      config.autoUnlock !== false &&
-      typeof window !== "undefined"
-    ) {
-      addUnlockListeners();
-    }
-
     if (config.enabled === false) {
       stopAllAudio();
     }
-  },
-
-  unlockAudio(): boolean {
-    if (audioUnlocked) return true;
-    if (!audioConfig.enabled) return false;
-    doUnlockAudio();
-    return audioUnlocked;
   },
 
   disableAudio(): void {
@@ -563,9 +492,7 @@ export const gamemaster = {
 
   enableAudio(): void {
     audioConfig.enabled = true;
-    if (audioUnlocked) {
-      socket.emit("register-audio-player", {});
-    }
+    socket.emit("register-audio-player", {});
   },
 
   socket,
