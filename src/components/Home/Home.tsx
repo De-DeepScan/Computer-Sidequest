@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useGamemaster } from '../../context/GamemasterContext';
 import './Home.css';
 import Game from '../Game/Game';
 
@@ -79,6 +80,7 @@ export default function Home() {
   const [terminals, setTerminals] = useState<TerminalWindow[]>([]);
   const [visibleTerminals, setVisibleTerminals] = useState<number[]>([]);
   const [showAccessOverlay, setShowAccessOverlay] = useState(false);
+  const { sendEvent } = useGamemaster();
 
   // Generate terminal windows on mount
   useEffect(() => {
@@ -113,16 +115,18 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [terminals, phase]);
 
-  // Go to game after overlay appears
+  // Send password_correct event and go to game after overlay appears
   useEffect(() => {
     if (!showAccessOverlay) return;
+
+    sendEvent('password_correct', { isPasswordCorrect: true });
 
     const timer = setTimeout(() => {
       setPhase('game');
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [showAccessOverlay]);
+  }, [showAccessOverlay, sendEvent]);
 
   if (phase === 'game') {
     return <Game />;

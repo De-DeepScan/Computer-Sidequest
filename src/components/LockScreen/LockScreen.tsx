@@ -110,7 +110,6 @@ export default function LockScreen() {
     });
 
     if (isCorrect) {
-      sendEvent("password_correct", { isPasswordCorrect: true });
       updateState({ isPasswordCorrect: true, passwordEntered: password });
       navigate("/home");
     } else {
