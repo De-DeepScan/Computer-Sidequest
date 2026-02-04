@@ -1,6 +1,7 @@
 import { io, Socket } from "socket.io-client";
 
-const BACKOFFICE_URL = "http://192.168.10.1:3000";
+// const BACKOFFICE_URL = "http://192.168.10.1:3000";
+const BACKOFFICE_URL = "http://10.14.73.40:3000";
 
 // =====================
 // Game Types
@@ -37,22 +38,20 @@ interface AudioConfig {
 
 interface PlayAmbientPayload {
   soundId: string;
-  file: string;
+  audioBase64: string;
+  mimeType: string;
   volume?: number;
 }
 
 interface StopAmbientPayload {
-  soundId: string;
-}
-
-interface VolumeAmbientPayload {
-  soundId: string;
-  volume: number;
+  soundId?: string;
 }
 
 interface PlayPresetPayload {
   presetIdx: number;
   file: string;
+  audioBase64: string;
+  mimeType: string;
 }
 
 interface PausePresetPayload {
@@ -61,7 +60,7 @@ interface PausePresetPayload {
 
 interface SeekPresetPayload {
   presetIdx: number;
-  time: number;
+  currentTime: number;
 }
 
 interface StopPresetPayload {
@@ -82,6 +81,7 @@ interface AudioStatus {
   enabled: boolean;
   masterVolume: number;
   iaVolume: number;
+  ambientVolume: number;
   activeAmbients: string[];
   activePresets: number[];
 }
@@ -119,14 +119,13 @@ let audioConfig: AudioConfig = {
 
 let audioUnlocked = false;
 let audioCtx: AudioContext | null = null;
-let masterGain: GainNode | null = null;
 let masterVolume = 1;
 let iaVolume = 1;
+let ambientVolume = 1;
 
 const ambientAudios: Map<string, HTMLAudioElement> = new Map();
 const presetAudios: Map<number, HTMLAudioElement> = new Map();
 let ttsAudio: HTMLAudioElement | null = null;
-let progressInterval: number | null = null;
 
 // =====================
 // Audio Helpers
@@ -138,47 +137,37 @@ function audioLog(msg: string, ...args: unknown[]): void {
   }
 }
 
-function initAudioContext(): void {
-  if (audioCtx) return;
+function doUnlockAudio(): void {
+  if (audioUnlocked || !audioConfig.enabled) return;
+
+  // Create and resume an AudioContext to satisfy browser autoplay policies
   const AudioContextClass =
     window.AudioContext ||
     (window as unknown as { webkitAudioContext: typeof AudioContext })
       .webkitAudioContext;
   audioCtx = new AudioContextClass();
-  masterGain = audioCtx.createGain();
-  masterGain.gain.value = masterVolume;
-  masterGain.connect(audioCtx.destination);
-  audioLog("AudioContext initialized");
-}
+  audioCtx
+    .resume()
+    .then(() => audioCtx?.close())
+    .catch(() => {});
 
-function routeThroughMaster(audio: HTMLAudioElement): void {
-  if (!audioCtx || !masterGain) return;
-  try {
-    const source = audioCtx.createMediaElementSource(audio);
-    source.connect(masterGain);
-  } catch {
-    // Already routed
-  }
-}
-
-function doUnlockAudio(): void {
-  if (audioUnlocked || !audioConfig.enabled) return;
-
-  initAudioContext();
-
-  if (audioCtx) {
-    const buf = audioCtx.createBuffer(1, 1, 22050);
-    const src = audioCtx.createBufferSource();
-    src.buffer = buf;
-    src.connect(audioCtx.destination);
-    src.start();
-  }
+  // Play a silent WAV to fully unlock HTML Audio elements
+  const silent = new Audio();
+  silent.src =
+    "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+  silent
+    .play()
+    .then(() => {
+      silent.pause();
+      silent.currentTime = 0;
+      silent.src = "";
+    })
+    .catch(() => {});
 
   audioUnlocked = true;
   audioLog("Audio unlocked via user interaction");
 
   socket.emit("register-audio-player", {});
-  startProgressReporting();
   removeUnlockListeners();
 }
 
@@ -199,29 +188,6 @@ function removeUnlockListeners(): void {
   if (typeof window === "undefined") return;
   for (const event of unlockEvents) {
     window.removeEventListener(event, doUnlockAudio);
-  }
-}
-
-function startProgressReporting(): void {
-  if (progressInterval !== null) return;
-
-  progressInterval = window.setInterval(() => {
-    for (const [idx, audio] of presetAudios) {
-      if (!audio.paused && audio.duration) {
-        socket.emit("audio:preset-progress", {
-          presetIdx: idx,
-          currentTime: audio.currentTime,
-          duration: audio.duration,
-        });
-      }
-    }
-  }, 250);
-}
-
-function stopProgressReporting(): void {
-  if (progressInterval !== null) {
-    window.clearInterval(progressInterval);
-    progressInterval = null;
   }
 }
 
@@ -251,77 +217,111 @@ function stopAllAudio(): void {
 // Audio Event Listeners
 // =====================
 
+function playBase64Audio(
+  audio: HTMLAudioElement,
+  base64: string,
+  mimeType: string,
+): void {
+  audio.src = `data:${mimeType};base64,${base64}`;
+  audio.play().catch((e) => audioLog("Play error:", e.message));
+}
+
+function applyPresetVolume(): void {
+  for (const a of presetAudios.values()) {
+    a.volume = masterVolume;
+  }
+}
+
+function applyTtsVolume(): void {
+  if (ttsAudio) {
+    ttsAudio.volume = Math.min(1, iaVolume * masterVolume);
+  }
+}
+
+function applyAmbientVolume(): void {
+  for (const a of ambientAudios.values()) {
+    a.volume = Math.min(1, ambientVolume * masterVolume);
+  }
+}
+
 function setupAudioEventListeners(): void {
   // Ambient sounds
   socket.on("audio:play-ambient", (data: PlayAmbientPayload) => {
     if (!audioUnlocked || !audioConfig.enabled) return;
-    const { soundId, file, volume } = data;
-    audioLog("Play ambient:", soundId, file);
+    const { soundId, audioBase64, mimeType, volume } = data;
+    audioLog("Play ambient:", soundId);
 
     const existing = ambientAudios.get(soundId);
     if (existing) {
       existing.pause();
-      existing.src = "";
     }
 
-    const audio = new Audio(`${BACKOFFICE_URL}/sounds/${file}`);
+    const audio = new Audio();
     audio.loop = true;
-    audio.volume = volume ?? 0.5;
-    routeThroughMaster(audio);
-    audio.play().catch((e) => audioLog("Play ambient error:", e.message));
     ambientAudios.set(soundId, audio);
+    playBase64Audio(audio, audioBase64, mimeType);
+    if (volume != null) {
+      audio.volume = volume * masterVolume;
+    } else {
+      applyAmbientVolume();
+    }
   });
 
   socket.on("audio:stop-ambient", (data: StopAmbientPayload) => {
-    const { soundId } = data;
-    audioLog("Stop ambient:", soundId);
-    const audio = ambientAudios.get(soundId);
-    if (audio) {
-      audio.pause();
-      audio.src = "";
-      ambientAudios.delete(soundId);
+    if (data && data.soundId && ambientAudios.has(data.soundId)) {
+      ambientAudios.get(data.soundId)!.pause();
+      ambientAudios.delete(data.soundId);
+      audioLog("Stop ambient:", data.soundId);
+    } else {
+      // Stop all ambient
+      for (const a of ambientAudios.values()) a.pause();
+      ambientAudios.clear();
+      audioLog("Stop all ambient");
     }
   });
 
-  socket.on("audio:volume-ambient", (data: VolumeAmbientPayload) => {
-    const { soundId, volume } = data;
-    const audio = ambientAudios.get(soundId);
-    if (audio) {
-      audio.volume = volume;
-      audioLog("Ambient volume:", soundId, volume);
-    }
+  socket.on("audio:volume-ambient", (data: VolumePayload) => {
+    ambientVolume = data.volume;
+    applyAmbientVolume();
+    audioLog("Ambient volume:", Math.round(ambientVolume * 100) + "%");
   });
 
   // Presets
   socket.on("audio:play-preset", (data: PlayPresetPayload) => {
     if (!audioUnlocked || !audioConfig.enabled) return;
-    const { presetIdx, file } = data;
+    const { presetIdx, file, audioBase64, mimeType } = data;
+    audioLog("Play preset:", presetIdx, file);
 
     const existing = presetAudios.get(presetIdx);
-    if (existing && existing.src) {
-      audioLog("Resume preset:", presetIdx);
-      existing.volume = iaVolume;
-      existing.play().catch((e) => audioLog("Resume preset error:", e.message));
-      return;
+    if (existing) {
+      existing.pause();
     }
 
-    audioLog("Play preset:", presetIdx, file);
-    const audio = new Audio(`${BACKOFFICE_URL}/presets/${file}`);
-    audio.volume = iaVolume;
-    routeThroughMaster(audio);
+    const audio = new Audio();
+    audio.volume = masterVolume;
 
-    audio.onended = () => {
+    audio.addEventListener("timeupdate", () => {
+      if (!audio.paused && socket.connected) {
+        socket.emit("audio:preset-progress", {
+          presetIdx,
+          currentTime: audio.currentTime,
+          duration: audio.duration || 0,
+        });
+      }
+    });
+
+    audio.addEventListener("ended", () => {
       socket.emit("audio:preset-progress", {
         presetIdx,
-        currentTime: audio.duration,
-        duration: audio.duration,
+        currentTime: audio.duration || 0,
+        duration: audio.duration || 0,
         ended: true,
       });
       presetAudios.delete(presetIdx);
-    };
+    });
 
-    audio.play().catch((e) => audioLog("Play preset error:", e.message));
     presetAudios.set(presetIdx, audio);
+    playBase64Audio(audio, audioBase64, mimeType);
   });
 
   socket.on("audio:pause-preset", (data: PausePresetPayload) => {
@@ -332,10 +332,11 @@ function setupAudioEventListeners(): void {
   });
 
   socket.on("audio:seek-preset", (data: SeekPresetPayload) => {
-    const { presetIdx, time } = data;
-    audioLog("Seek preset:", presetIdx, "to", time);
+    const { presetIdx, currentTime } = data;
+    audioLog("Seek preset:", presetIdx, "to", currentTime);
     const audio = presetAudios.get(presetIdx);
-    if (audio) audio.currentTime = time;
+    if (audio && typeof currentTime === "number")
+      audio.currentTime = currentTime;
   });
 
   socket.on("audio:stop-preset", (data: StopPresetPayload) => {
@@ -344,7 +345,7 @@ function setupAudioEventListeners(): void {
     const audio = presetAudios.get(presetIdx);
     if (audio) {
       audio.pause();
-      audio.src = "";
+      audio.currentTime = 0;
       presetAudios.delete(presetIdx);
     }
   });
@@ -357,41 +358,30 @@ function setupAudioEventListeners(): void {
 
     if (ttsAudio) {
       ttsAudio.pause();
-      ttsAudio.src = "";
     }
 
-    const binary = atob(audioBase64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
-    }
-    const blob = new Blob([bytes], { type: mimeType || "audio/mpeg" });
-    const url = URL.createObjectURL(blob);
+    ttsAudio = new Audio();
+    playBase64Audio(ttsAudio, audioBase64, mimeType || "audio/mpeg");
+    applyTtsVolume();
 
-    ttsAudio = new Audio(url);
-    ttsAudio.volume = iaVolume;
-    routeThroughMaster(ttsAudio);
     ttsAudio.onended = () => {
-      URL.revokeObjectURL(url);
       ttsAudio = null;
     };
-    ttsAudio.play().catch((e) => audioLog("TTS play error:", e.message));
   });
 
   // Volume controls
-  socket.on("audio:volume-ia", (data: VolumePayload) => {
-    iaVolume = data.volume;
-    audioLog("IA volume:", Math.round(iaVolume * 100) + "%");
-    for (const audio of presetAudios.values()) {
-      audio.volume = iaVolume;
-    }
-    if (ttsAudio) ttsAudio.volume = iaVolume;
-  });
-
   socket.on("audio:master-volume", (data: VolumePayload) => {
     masterVolume = data.volume;
     audioLog("Master volume:", Math.round(masterVolume * 100) + "%");
-    if (masterGain) masterGain.gain.value = masterVolume;
+    applyPresetVolume();
+    applyTtsVolume();
+    applyAmbientVolume();
+  });
+
+  socket.on("audio:volume-ia", (data: VolumePayload) => {
+    iaVolume = data.volume;
+    audioLog("IA volume:", Math.round(iaVolume * 100) + "%");
+    applyTtsVolume();
   });
 
   // Stop all
@@ -442,11 +432,11 @@ socket.io.on("reconnect_failed", () => {
 
 if (typeof document !== "undefined") {
   document.addEventListener("visibilitychange", () => {
-    if (
-      document.visibilityState === "visible" &&
-      audioCtx?.state === "suspended"
-    ) {
-      audioCtx.resume();
+    if (document.visibilityState === "visible") {
+      // Resume any paused audio elements when tab becomes visible again
+      for (const a of ambientAudios.values()) {
+        if (a.paused && a.src) a.play().catch(() => {});
+      }
     }
   });
 }
@@ -536,6 +526,7 @@ export const gamemaster = {
       enabled: audioConfig.enabled,
       masterVolume,
       iaVolume,
+      ambientVolume,
       activeAmbients: [...ambientAudios.keys()],
       activePresets: [...presetAudios.keys()],
     };
@@ -555,7 +546,6 @@ export const gamemaster = {
 
     if (config.enabled === false) {
       stopAllAudio();
-      stopProgressReporting();
     }
   },
 
@@ -569,14 +559,12 @@ export const gamemaster = {
   disableAudio(): void {
     audioConfig.enabled = false;
     stopAllAudio();
-    stopProgressReporting();
   },
 
   enableAudio(): void {
     audioConfig.enabled = true;
     if (audioUnlocked) {
       socket.emit("register-audio-player", {});
-      startProgressReporting();
     }
   },
 
