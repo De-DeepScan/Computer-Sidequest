@@ -1,5 +1,6 @@
 import { io, Socket } from "socket.io-client";
 import { GamemasterAudio } from "./gamemaster-audio";
+import { GamemasterWebcam } from "./gamemaster-webcam";
 
 // const BACKOFFICE_URL = "http://192.168.10.1:3000";
 const BACKOFFICE_URL = "http://10.14.73.40:3000";
@@ -88,6 +89,12 @@ socket.io.on("reconnect_failed", () => {
 });
 
 // =====================
+// Webcam
+// =====================
+
+const webcam = new GamemasterWebcam(socket, "sidequest");
+
+// =====================
 // Gamemaster Export
 // =====================
 
@@ -169,6 +176,9 @@ export const gamemaster = {
   enableAudio(): void {
     audio.enable();
   },
+
+  // Webcam API (delegated)
+  webcam,
 
   socket,
 };
