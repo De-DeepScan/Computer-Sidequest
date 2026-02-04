@@ -1,0 +1,295 @@
+/* === ARIA DESIGN SYSTEM - TOKENS === */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* Colors - Good Mode (Cyan) */
+  --color-primary: #00ffff;
+  --color-primary-glow-soft: rgba(0, 255, 255, 0.3);
+  --color-primary-glow-medium: rgba(0, 255, 255, 0.5);
+  --color-primary-glow-strong: rgba(0, 255, 255, 0.8);
+  --color-secondary: #006666;
+
+  /* Colors - Evil Mode (Rouge) */
+  --color-danger: #ff0000;
+  --color-danger-dark: #8b0000;
+  --color-danger-light: #ff3333;
+  --color-danger-glow: rgba(255, 0, 0, 0.3);
+  --color-danger-secondary: #4a0000;
+
+  /* Colors - Neutral */
+  --color-bg-deep: #0a0a0a;
+  --color-bg-surface: #1a1a1a;
+  --color-bg-elevated: #242424;
+  --color-text-primary: rgba(255, 255, 255, 0.87);
+  --color-text-secondary: rgba(255, 255, 255, 0.6);
+  --color-text-muted: rgba(255, 255, 255, 0.4);
+
+  /* Colors - Effects */
+  --color-glitch-magenta: #f0f;
+  --color-glitch-yellow: #ff0;
+  --color-overlay-dark: rgba(0, 20, 20, 0.9);
+
+  /* Typography */
+  --font-primary: "Courier New", Courier, monospace;
+  --font-system: system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+  --text-xs: 0.6rem;
+  --text-sm: 0.7rem;
+  --text-base: 0.85rem;
+  --text-md: 0.9rem;
+  --text-lg: 1rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2.5rem;
+  --text-3xl: 3.2rem;
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 0.75rem;
+  --space-lg: 1rem;
+  --space-xl: 1.5rem;
+  --space-2xl: 2rem;
+
+  /* Borders */
+  --border-thin: 1px solid;
+  --border-medium: 2px solid;
+  --border-radius-none: 0;
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-full: 50%;
+
+  /* Shadows */
+  --shadow-glow-soft: 0 0 10px rgba(0, 255, 255, 0.3);
+  --shadow-glow-medium: 0 0 20px rgba(0, 255, 255, 0.4);
+  --shadow-glow-strong: 0 0 30px rgba(0, 255, 255, 0.8);
+  --shadow-inset: inset 0 0 20px rgba(0, 255, 255, 0.05);
+  --shadow-evil-soft: 0 0 10px rgba(255, 51, 51, 0.2);
+  --shadow-evil-medium: 0 0 20px rgba(255, 0, 0, 0.4);
+  --shadow-evil-strong: 0 0 30px rgba(255, 0, 0, 0.8);
+
+  /* Animation */
+  --ease-default: ease;
+  --ease-smooth: ease-in-out;
+  --ease-out: ease-out;
+  --ease-bounce: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --duration-instant: 0.1s;
+  --duration-fast: 0.3s;
+  --duration-normal: 0.5s;
+  --duration-slow: 0.8s;
+
+  /* Base styles */
+  font-family: var(--font-primary);
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+  color: var(--color-primary);
+  background-color: var(--color-bg-deep);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--color-bg-deep);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: var(--text-2xl);
+  line-height: 1.1;
+  margin: 0;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-primary-glow-strong);
+  text-shadow: var(--shadow-glow-soft);
+}
+
+/* === GLOBAL ANIMATIONS === */
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
+@keyframes crtFlicker {
+  0%, 100% {
+    opacity: 0.97;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+@keyframes letterGlitch {
+  0%, 100% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+  20% {
+    transform: translate(-2px, 1px);
+    opacity: 0.8;
+  }
+  40% {
+    transform: translate(2px, -1px);
+    opacity: 0.9;
+  }
+  60% {
+    transform: translate(-1px, 2px);
+    opacity: 0.7;
+  }
+  80% {
+    transform: translate(1px, -2px);
+    opacity: 1;
+  }
+}
+
+@keyframes messageAppear {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes evilFlicker {
+  0%, 100% {
+    opacity: 1;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  20% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.85;
+  }
+  80% {
+    opacity: 1;
+  }
+}
+
+@keyframes screenGlitch {
+  0% {
+    filter: hue-rotate(0deg) saturate(100%);
+    transform: translate(0);
+  }
+  10% {
+    filter: hue-rotate(90deg) saturate(200%);
+    transform: translate(-2px, 1px);
+  }
+  20% {
+    filter: hue-rotate(180deg) saturate(150%);
+    transform: translate(2px, -1px);
+  }
+  30% {
+    filter: hue-rotate(270deg) saturate(300%);
+    transform: translate(-1px, -1px);
+  }
+  40%, 100% {
+    filter: hue-rotate(0deg) saturate(100%);
+    transform: translate(0);
+  }
+}
+
+/* Eye animations */
+@keyframes eyeLookAround {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 30% {
+    transform: translateX(-8px);
+  }
+  70%, 80% {
+    transform: translateX(8px);
+  }
+}
+
+@keyframes eyeBlink {
+  0%, 42%, 48%, 100% {
+    transform: scaleY(1);
+  }
+  45% {
+    transform: scaleY(0.1);
+  }
+}
+
+/* Utility classes */
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.animate-blink {
+  animation: blink 0.8s step-end infinite;
+}
+
+.animate-glitch {
+  animation: letterGlitch 4s ease-in-out infinite;
+}

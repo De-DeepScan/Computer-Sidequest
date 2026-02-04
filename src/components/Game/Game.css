@@ -1,0 +1,708 @@
+/* =========================================
+   ARIA DESIGN SYSTEM - TOKENS & BASE
+   ========================================= */
+:root {
+  /* Colors - Good Mode (Default) */
+  --color-primary: #00ffff;
+  --color-primary-glow-soft: rgba(0, 255, 255, 0.3);
+  --color-primary-glow-medium: rgba(0, 255, 255, 0.5);
+  --color-primary-glow-strong: rgba(0, 255, 255, 0.8);
+  --color-secondary: #006666;
+
+  /* Colors - Evil/Fail Mode */
+  --color-danger: #ff0000;
+  --color-danger-glow: rgba(255, 0, 0, 0.5);
+
+  /* Neutrals */
+  --color-bg-deep: #0a0a0a;
+  --color-bg-surface: #1a1a1a;
+  --color-bg-elevated: #242424;
+  --color-text-primary: rgba(255, 255, 255, 0.9);
+  --color-overlay-dark: rgba(0, 20, 20, 0.95);
+
+  /* Typography */
+  --font-primary: "Courier New", Courier, monospace;
+
+  /* Spacing */
+  --space-md: 0.75rem;
+  --space-xl: 1.5rem;
+
+  /* Borders & Shadows */
+  --border-thin: 1px solid;
+  --border-medium: 2px solid;
+  --shadow-glow-medium: 0 0 20px rgba(0, 255, 255, 0.4);
+  --shadow-glow-strong: 0 0 30px rgba(0, 255, 255, 0.8);
+}
+
+.game-wrapper {
+  background-color: var(--color-bg-deep);
+  color: var(--color-primary);
+  font-family: var(--font-primary);
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+  user-select: none;
+  /* Background Grid Pattern */
+  background-image: linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* =========================================
+   VISUAL EFFECTS (CRT, GLITCH, ANIMATIONS)
+   ========================================= */
+
+/* CRT Overlay */
+.crt-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.crt-overlay::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  animation: crtFlicker 0.1s infinite;
+}
+
+.crt-overlay::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: rgba(0, 255, 255, 0.1);
+  animation: scanline 4s linear infinite;
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+@keyframes crtFlicker {
+  0% {
+    opacity: 0.97;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.98;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+
+/* =========================================
+   LAYOUT & COMMON UI
+   ========================================= */
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+}
+
+/* Header with Mascot */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md);
+  border: var(--border-thin) var(--color-primary);
+  background: rgba(0, 20, 20, 0.6);
+  box-shadow: var(--shadow-glow-medium);
+  margin-bottom: 20px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.aria-mascot-svg {
+  width: 60px;
+  height: 50px;
+  color: var(--color-primary);
+  filter: drop-shadow(0 0 5px var(--color-primary-glow-strong));
+}
+
+.header-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.header-sub {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  letter-spacing: 1px;
+}
+
+.resource-box {
+  text-align: right;
+}
+
+.resource-label {
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+  opacity: 0.8;
+}
+
+.resource-value {
+  font-size: 2rem;
+  font-weight: bold;
+  line-height: 1;
+  text-shadow: 0 0 10px var(--color-primary);
+}
+
+/* Upload Bar */
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+}
+
+.upload-container {
+  width: 100%;
+  height: 12px;
+  background-color: var(--color-bg-surface);
+  border: var(--border-thin) var(--color-primary);
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.upload-bar {
+  height: 100%;
+  width: 0%;
+  background-color: var(--color-primary);
+  box-shadow: 0 0 15px var(--color-primary);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Game Area */
+#game-area {
+  flex-grow: 1;
+  border: var(--border-thin) var(--color-primary);
+  background: rgba(0, 20, 20, 0.3);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: inset 0 0 30px rgba(0, 255, 255, 0.05);
+}
+
+/* Log Area */
+#log-area {
+  height: 100px;
+  margin-top: 20px;
+  border-top: var(--border-thin) var(--color-primary);
+  padding: 10px;
+  font-size: 0.85rem;
+  opacity: 0.8;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: linear-gradient(to bottom, transparent, rgba(0, 20, 20, 0.5));
+}
+
+.log-entry::before {
+  content: "> ";
+  color: var(--color-primary);
+  margin-right: 5px;
+}
+
+.log-entry {
+  margin-bottom: 2px;
+  text-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+}
+
+/* =========================================
+   GAME PHASES STYLING
+   ========================================= */
+
+/* Phase 1: Button */
+.btn-primary {
+  background: var(--color-bg-elevated);
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+  padding: 20px 40px;
+  font-family: var(--font-primary);
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  cursor: pointer;
+  box-shadow: var(--shadow-glow-medium);
+  transition: all 0.2s ease;
+}
+
+.btn-primary:active {
+  transform: scale(0.95);
+  background: var(--color-primary);
+  color: #000;
+  box-shadow: var(--shadow-glow-strong);
+}
+
+/* Phase 2: Targets */
+.target-node {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border: 2px solid var(--color-primary);
+  background: rgba(0, 255, 255, 0.1);
+  color: var(--color-primary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 0 10px var(--color-primary);
+  animation: pulse 1.5s infinite;
+  border-radius: 50%;
+}
+
+.target-node:active {
+  background: var(--color-primary);
+  color: #000;
+}
+
+/* Phase 3: Captcha */
+.terminal-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.captcha-box {
+  border: 1px solid var(--color-primary);
+  background: rgba(0, 20, 20, 0.8);
+  padding: 20px;
+  text-align: center;
+  width: 80%;
+  max-width: 400px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-glow-soft);
+}
+
+.sequence-display {
+  font-size: 3rem;
+  letter-spacing: 10px;
+  margin: 10px 0;
+  font-weight: bold;
+  text-shadow: 0 0 10px var(--color-primary);
+}
+
+.timer-track {
+  width: 100%;
+  height: 4px;
+  background: #333;
+  margin-top: 10px;
+}
+
+.timer-fill {
+  height: 100%;
+  background: var(--color-primary);
+  width: 100%;
+  box-shadow: 0 0 5px var(--color-primary);
+}
+
+.keypad {
+  display: flex;
+  gap: 15px;
+}
+
+.key-btn {
+  background: transparent;
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
+  width: 70px;
+  height: 60px;
+  font-size: 1.5rem;
+  font-family: var(--font-primary);
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.key-btn:active {
+  background: var(--color-primary);
+  color: #000;
+}
+
+.key-back {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.key-back:active {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+/* Phase 4: Wires */
+#svg-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.wire-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  height: 70%;
+  position: absolute;
+  width: 60px;
+  top: 15%;
+}
+
+.wire-dot {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #000;
+  border: 2px solid var(--color-primary);
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: var(--color-primary);
+  margin: 0 auto;
+  box-shadow: 0 0 10px var(--color-primary-glow-soft);
+}
+
+.wire-dot[data-connected="true"] {
+  background: var(--color-primary);
+  color: black;
+  box-shadow: 0 0 15px var(--color-primary);
+}
+
+.wire-line {
+  stroke: var(--color-primary);
+  stroke-width: 3;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 5px var(--color-primary));
+}
+
+.tutorial-text {
+  position: absolute;
+  top: 5%;
+  width: 100%;
+  text-align: center;
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  animation: blink 2s infinite;
+  opacity: 0.8;
+}
+
+/* Phase 5: Hex */
+.hex-grid {
+  display: flex;
+  flex-wrap: wrap;
+  width: 300px;
+  justify-content: center;
+  gap: 5px;
+}
+
+.hex {
+  width: 70px;
+  height: 60px;
+  background-color: rgba(0, 102, 102, 0.3);
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
+  cursor: pointer;
+  border: none;
+  color: var(--color-primary-glow-medium);
+  transition: all 0.2s;
+}
+
+.hex:hover {
+  background-color: rgba(0, 255, 255, 0.2);
+}
+
+.hex.active {
+  background-color: var(--color-primary);
+  color: #000;
+  box-shadow: 0 0 20px var(--color-primary);
+  z-index: 2;
+}
+
+/* Phase 6: Skill Check */
+.skill-container {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.skill-circle {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 6px solid #222;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+}
+
+.skill-zone {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  mask: radial-gradient(transparent 62%, black 63%);
+  -webkit-mask: radial-gradient(transparent 62%, black 63%);
+}
+
+.skill-needle {
+  position: absolute;
+  width: 4px;
+  height: 50%;
+  background: var(--color-danger);
+  bottom: 50%;
+  left: calc(50% - 2px);
+  transform-origin: bottom center;
+  border-radius: 2px;
+  z-index: 10;
+  box-shadow: 0 0 10px var(--color-danger);
+}
+
+.skill-btn {
+  position: absolute;
+  z-index: 20;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
+  font-size: 1.2rem;
+  font-family: var(--font-primary);
+  cursor: pointer;
+  box-shadow: var(--shadow-glow-medium);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.1s;
+}
+
+.skill-btn:active {
+  background: var(--color-primary);
+  color: black;
+  transform: scale(0.95);
+}
+
+.fail-anim {
+  animation: shake 0.4s;
+  border-color: var(--color-danger) !important;
+  color: var(--color-danger) !important;
+}
+
+/* Overlays */
+.sending-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--color-overlay-dark);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  backdrop-filter: blur(5px);
+}
+
+.sending-text {
+  font-size: 2rem;
+  color: var(--color-primary);
+  margin-bottom: 20px;
+  animation: blink 0.5s infinite;
+  letter-spacing: 5px;
+}
+
+/* Ghost / Helper */
+.ghost-demo {
+  position: absolute;
+  top: 22%;
+  left: 12.5%;
+  width: 200px;
+  height: 50px;
+  pointer-events: none;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  animation: fade-ghost 2s infinite;
+}
+
+.ghost-dot-start {
+  width: 10px;
+  height: 10px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--color-primary);
+}
+
+.ghost-line {
+  height: 2px;
+  background: var(--color-primary);
+  width: 0%;
+  animation: grow-line 2s infinite;
+  transform-origin: left;
+  box-shadow: 0 0 5px var(--color-primary);
+}
+
+.ghost-hand {
+  font-size: 2rem;
+  margin-left: -10px;
+  animation: move-hand 2s infinite;
+  filter: drop-shadow(0 0 5px var(--color-primary));
+  opacity: 0.8;
+}
+
+@keyframes grow-line {
+  0% {
+    width: 0;
+  }
+  20% {
+    width: 0;
+  }
+  70% {
+    width: 200px;
+  }
+  100% {
+    width: 200px;
+  }
+}
+
+@keyframes move-hand {
+  0% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(0);
+  }
+  70% {
+    transform: translateX(200px);
+  }
+  100% {
+    transform: translateX(200px);
+  }
+}
+
+@keyframes fade-ghost {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+  75% {
+    transform: translateX(-5px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}

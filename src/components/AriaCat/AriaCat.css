@@ -1,0 +1,149 @@
+/* === ARIA CAT SVG - DESIGN SYSTEM === */
+
+/* Wrapper */
+.aria-cat-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Size variants */
+.aria-cat--small .aria-cat-svg {
+  width: 100px;
+  height: 90px;
+}
+
+.aria-cat--medium .aria-cat-svg {
+  width: 200px;
+  height: 180px;
+}
+
+.aria-cat--large .aria-cat-svg {
+  width: 400px;
+  height: 360px;
+}
+
+/* SVG base styles */
+.aria-cat-svg {
+  color: var(--color-primary);
+  filter: drop-shadow(0 0 15px var(--color-primary-glow-medium));
+  transition: filter var(--duration-fast) var(--ease-default);
+}
+
+/* Evil mode */
+.aria-cat-wrapper.evil .aria-cat-svg {
+  color: var(--color-danger);
+  filter: drop-shadow(0 0 15px var(--color-danger-glow));
+}
+
+.aria-cat-wrapper.evil {
+  animation: float 2s ease-in-out infinite, evilFlicker 4s ease-in-out infinite;
+}
+
+/* === ANIMATIONS === */
+
+/* Eye group - blink animation */
+.eye-group {
+  transform-origin: 100px 115px;
+  animation: eyeBlink 3.5s ease-in-out infinite;
+}
+
+/* Pupil - look around animation */
+.eye-pupil {
+  animation: eyeLookAround 4s ease-in-out infinite;
+}
+
+/* Closed eye line - hidden by default */
+.eye-closed-line {
+  opacity: 0;
+}
+
+/* Whisker animations */
+.whisker {
+  animation: whiskerTwitch 4s ease-in-out infinite;
+}
+
+.whisker-left-1,
+.whisker-right-1 {
+  animation-delay: 0s;
+}
+
+.whisker-left-2,
+.whisker-right-2 {
+  animation-delay: 0.1s;
+}
+
+.whisker-left-3,
+.whisker-right-3 {
+  animation-delay: 0.2s;
+}
+
+@keyframes whiskerTwitch {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(2deg);
+  }
+  75% {
+    transform: rotate(-2deg);
+  }
+}
+
+/* Cat line draw animation (for initial appearance) */
+.cat-line {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: draw 2s ease forwards;
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* === STATES === */
+
+/* Thinking state */
+.aria-cat-wrapper.thinking {
+  animation: float 1.5s ease-in-out infinite;
+}
+
+.aria-cat-wrapper.thinking .aria-cat-svg {
+  filter: drop-shadow(0 0 40px var(--color-primary-glow-strong));
+}
+
+/* Speaking state */
+.aria-cat-wrapper.speaking {
+  animation: speakingPulse 0.8s ease-in-out infinite;
+}
+
+@keyframes speakingPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+/* Glitch state (transition to evil) */
+.aria-cat-wrapper.glitch {
+  animation: screenGlitch 0.8s ease-in-out;
+}
+
+/* === RESPONSIVE === */
+
+@media (max-width: 600px) {
+  .aria-cat--large .aria-cat-svg {
+    width: 200px;
+    height: 180px;
+  }
+
+  .aria-cat--medium .aria-cat-svg {
+    width: 150px;
+    height: 135px;
+  }
+}

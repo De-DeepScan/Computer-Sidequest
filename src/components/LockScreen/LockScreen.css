@@ -1,0 +1,459 @@
+/* === LOCK SCREEN - ARIA DESIGN SYSTEM === */
+
+/* CRT Screen Container */
+.lock-screen {
+  min-height: 100vh;
+  background: var(--color-bg-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-primary);
+}
+
+/* Grid background */
+.lock-screen::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    linear-gradient(var(--color-primary-glow-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-primary-glow-soft) 1px, transparent 1px);
+  background-size: 50px 50px;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+/* CRT effect wrapper */
+.crt {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* CRT screen curvature */
+.crt::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    transparent 60%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
+  pointer-events: none;
+}
+
+/* CRT flicker effect */
+.crt::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(18, 16, 16, 0);
+  animation: crtFlicker var(--duration-instant) infinite;
+  pointer-events: none;
+}
+
+/* Scanline effect */
+.scanline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 101;
+}
+
+/* Moving scanline bar */
+.scanline-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--color-primary-glow-soft);
+  animation: scanline 4s linear infinite;
+  pointer-events: none;
+  z-index: 102;
+}
+
+/* Noise overlay */
+.noise {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  width: 200%;
+  height: 200%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 103;
+  animation: noise-move 0.2s steps(10) infinite;
+}
+
+@keyframes noise-move {
+  0% { transform: translate(0, 0); }
+  10% { transform: translate(-5%, -5%); }
+  20% { transform: translate(-10%, 5%); }
+  30% { transform: translate(5%, -10%); }
+  40% { transform: translate(-5%, 15%); }
+  50% { transform: translate(-10%, 5%); }
+  60% { transform: translate(15%, 0); }
+  70% { transform: translate(0, 10%); }
+  80% { transform: translate(-15%, 0); }
+  90% { transform: translate(10%, 5%); }
+  100% { transform: translate(5%, 0); }
+}
+
+/* RGB split / chromatic aberration */
+.rgb-split {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 99;
+  animation: rgb-shift 4s ease-in-out infinite;
+}
+
+@keyframes rgb-shift {
+  0%, 100% {
+    box-shadow:
+      -1px 0 0 rgba(255, 0, 255, 0.1),
+      1px 0 0 var(--color-primary-glow-soft);
+  }
+  50% {
+    box-shadow:
+      -2px 0 0 rgba(255, 0, 255, 0.15),
+      2px 0 0 var(--color-primary-glow-medium);
+  }
+}
+
+/* Screen glow */
+.screen-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-shadow: inset 0 0 150px var(--color-primary-glow-soft);
+  pointer-events: none;
+  z-index: 98;
+}
+
+/* Main container */
+.lock-container {
+  background: var(--color-overlay-dark);
+  border: var(--border-medium) var(--color-primary);
+  box-shadow:
+    var(--shadow-glow-medium),
+    var(--shadow-inset);
+  padding: var(--space-2xl);
+  width: 100%;
+  max-width: 500px;
+  position: relative;
+  z-index: 5;
+}
+
+/* Terminal header */
+.terminal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: var(--space-lg);
+  border-bottom: var(--border-thin) var(--color-primary);
+  margin-bottom: var(--space-xl);
+  color: var(--color-primary);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.terminal-icon {
+  color: var(--color-danger);
+}
+
+.terminal-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lock-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--color-primary);
+}
+
+/* Title */
+.lock-title {
+  text-align: center;
+  font-size: var(--text-2xl);
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.4em;
+  margin-bottom: var(--space-sm);
+  text-shadow: var(--shadow-glow-soft);
+}
+
+.lock-subtitle {
+  text-align: center;
+  color: var(--color-primary);
+  font-size: var(--text-md);
+  margin-bottom: var(--space-2xl);
+  letter-spacing: 2px;
+}
+
+.cursor {
+  animation: blink 0.8s step-end infinite;
+}
+
+/* Form */
+.lock-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.input-container {
+  display: flex;
+  align-items: center;
+  border: var(--border-thin) var(--color-primary);
+  background: rgba(0, 255, 255, 0.02);
+  padding: var(--space-sm) var(--space-lg);
+  transition: all var(--duration-fast) var(--ease-default);
+}
+
+.input-container:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-glow-soft);
+  background: rgba(0, 255, 255, 0.05);
+}
+
+.input-prefix {
+  color: var(--color-primary);
+  margin-right: var(--space-md);
+  font-size: var(--text-lg);
+}
+
+.lock-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--color-primary);
+  font-family: var(--font-primary);
+  font-size: var(--text-md);
+  padding: var(--space-md) 0;
+  letter-spacing: 2px;
+}
+
+.lock-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* Button */
+.lock-button {
+  font-family: var(--font-primary);
+  font-size: var(--text-base);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+
+  padding: var(--space-lg) var(--space-xl);
+
+  background: var(--color-bg-elevated);
+  color: var(--color-primary);
+  border: var(--border-medium) var(--color-primary);
+  border-radius: var(--border-radius-none);
+
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-default);
+}
+
+.lock-button:hover {
+  background: var(--color-primary);
+  color: var(--color-bg-deep);
+  box-shadow: var(--shadow-glow-medium);
+}
+
+.lock-button:active {
+  transform: scale(0.98);
+}
+
+/* Shake animation for error */
+.shake {
+  animation: shake var(--duration-normal) var(--ease-smooth);
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Error message */
+.error-message {
+  background: var(--color-danger-glow);
+  border: var(--border-thin) var(--color-danger);
+  color: var(--color-danger);
+  padding: var(--space-lg);
+  text-align: center;
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-top: var(--space-xl);
+  animation: error-pulse var(--duration-normal) var(--ease-smooth);
+}
+
+.error-icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background: var(--color-danger);
+  color: var(--color-bg-deep);
+  border-radius: var(--border-radius-full);
+  margin-right: var(--space-md);
+  font-weight: bold;
+  line-height: 20px;
+}
+
+@keyframes error-pulse {
+  0% { opacity: 0; transform: scale(0.95); }
+  50% { opacity: 1; transform: scale(1.02); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Footer */
+.terminal-footer {
+  margin-top: var(--space-2xl);
+  padding-top: var(--space-lg);
+  border-top: var(--border-thin) var(--color-primary);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.footer-line {
+  margin-bottom: var(--space-md);
+}
+
+.footer-stats {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Loading Screen - Écran noir en attente d'activation ARIA */
+.loading-screen {
+  background: #000 !important;
+}
+
+.loading-screen::before,
+.loading-screen::after {
+  display: none !important;
+}
+
+/* Code input wrapper */
+.code-input-wrapper {
+  position: relative;
+}
+
+/* Code boxes for password */
+.code-boxes {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-md);
+  cursor: text;
+}
+
+.code-box {
+  width: 50px;
+  height: 60px;
+  border: var(--border-medium) var(--color-primary);
+  background: rgba(0, 255, 255, 0.02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-2xl);
+  color: var(--color-primary);
+  font-family: var(--font-primary);
+  transition: all var(--duration-fast) var(--ease-default);
+}
+
+.code-box.filled {
+  background: rgba(0, 255, 255, 0.1);
+  box-shadow: var(--shadow-glow-soft);
+}
+
+.hidden-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+}
+
+/* Typing animation from backend */
+.code-boxes.typing .code-box {
+  border-color: var(--color-warning, #ffaa00);
+}
+
+.code-boxes.typing .code-box.filled {
+  background: rgba(255, 170, 0, 0.1);
+  box-shadow: 0 0 15px rgba(255, 170, 0, 0.3);
+  color: var(--color-warning, #ffaa00);
+}
+
+/* Disabled button during typing */
+.lock-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.lock-button:disabled:hover {
+  background: var(--color-bg-elevated);
+  color: var(--color-primary);
+  box-shadow: none;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .lock-container {
+    margin: var(--space-lg);
+    padding: var(--space-xl);
+  }
+
+  .lock-title {
+    font-size: 1.8rem;
+    letter-spacing: 0.3em;
+  }
+
+  .terminal-header {
+    font-size: var(--text-xs);
+  }
+}
