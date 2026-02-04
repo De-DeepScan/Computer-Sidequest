@@ -39,23 +39,19 @@ export default function Game() {
   // Sync state with gamemaster when score or phase changes
   useEffect(() => {
     if (gameStarted) {
-      syncState(totalSent, currentPhase);
+      updateState({
+        score: totalSent,
+        phase: currentPhase,
+        in_progress: true,
+      });
     }
-  }, [totalSent, currentPhase, gameStarted]);
+  }, [totalSent, currentPhase, gameStarted, updateState]);
 
   const addLog = (msg: string) => {
     setLogs((prev) => {
       const newLogs = [...prev, msg];
       if (newLogs.length > 5) newLogs.shift();
       return newLogs;
-    });
-  };
-
-  const syncState = (score: number, phase: number) => {
-    updateState({
-      score,
-      phase,
-      in_progress: true,
     });
   };
 
@@ -92,7 +88,11 @@ export default function Game() {
         totalPoints: newTotal
       });
       sendEvent('resource_transferred', { total: newTotal });
-      syncState(newTotal, currentPhase);
+      updateState({
+        score: newTotal,
+        phase: currentPhase,
+        in_progress: true,
+      });
       return newTotal;
     });
 
@@ -124,7 +124,11 @@ export default function Game() {
     lastPhasePlayedRef.current = next;
     setCurrentPhase(next);
     setTaskProgress(0);
-    syncState(totalSent, next);
+    updateState({
+      score: totalSent,
+      phase: next,
+      in_progress: true,
+    });
   };
 
   // Register command handler for this screen
