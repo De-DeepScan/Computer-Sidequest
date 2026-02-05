@@ -5,6 +5,7 @@ import {
   registerCommandHandler,
   unregisterCommandHandler,
 } from "../../context/GamemasterContext";
+import ScreenBoot from "../ScreenBoot/ScreenBoot";
 import "./LockScreen.css";
 
 const CORRECT_PASSWORD = "admin";
@@ -14,6 +15,7 @@ export default function LockScreen() {
   const [error, setError] = useState(false);
   const [shake, setShake] = useState(false);
   const [isTypingAnimation, setIsTypingAnimation] = useState(false);
+  const [booting, setBooting] = useState(false);
 
   // Refs for typing animation to avoid closure stale issues
   const typeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -51,6 +53,7 @@ export default function LockScreen() {
       payload: Record<string, unknown>,
     ) => {
       if (action === "start_screen") {
+        setBooting(true);
         updateState({ startScreen: true });
       }
 
@@ -155,6 +158,9 @@ export default function LockScreen() {
 
   return (
     <div className="lock-screen">
+      {/* Boot animation overlay — lock screen content visible behind during split-open */}
+      {booting && <ScreenBoot onComplete={() => setBooting(false)} />}
+
       {/* CRT Effects */}
       <div className="crt"></div>
       <div className="scanline"></div>
